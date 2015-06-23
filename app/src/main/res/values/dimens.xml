@@ -1,0 +1,31 @@
+<resources>
+    <!-- Default screen margins, per the Android Design guidelines. -->
+    <dimen name="activity_horizontal_margin">16dp</dimen>
+    <dimen name="activity_vertical_margin">16dp</dimen>
+    <dimen name="general_padding">16dp</dimen>
+    <dimen name="general_half_padding">8dp</dimen>
+    <dimen name="general_icon_18_dp">18dp</dimen>
+    <dimen name="general_title_small_14_sp">14sp</dimen>
+
+    <!-- menu item -->
+    <dimen name="navigation_menu_left_margin">36dp</dimen>
+    <dimen name="navigation_menu_height">48dp</dimen>
+
+    <!-- today fragment -->
+    <dimen name="fragment_today_description_container_up_down_padding">40dp</dimen>
+    <dimen name="fragment_today_city_name">18sp</dimen>
+    <dimen name="fragment_today_description_icon">28dp</dimen>
+    <dimen name="fragment_today_description">18sp</dimen>
+    <dimen name="fragment_today_temperature">52sp</dimen>
+    <dimen name="fragment_today_detail_container_height">100dp</dimen>
+    <dimen name="fragment_today_detail_text">12sp</dimen>
+
+    <!-- forecast fragment item -->
+    <dimen name="fragment_forecast_item_container_height">88dp</dimen>
+    <dimen name="fragment_forecast_item_icon_outside_margin">16dp</dimen>
+    <dimen name="fragment_forecast_item_icon_outside">56dp</dimen>
+    <dimen name="fragment_forecast_item_icon_inside">32dp</dimen>
+    <dimen name="fragment_forecast_item_title_top_margin">24dp</dimen>
+    <dimen name="fragment_forecast_item_temperature">12sp</dimen>
+
+</resources>

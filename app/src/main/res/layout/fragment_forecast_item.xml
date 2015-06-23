@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                xmlns:tools="http://schemas.android.com/tools"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/fragment_forecast_item_container_height"
+    >
+
+    <ImageView
+        android:id="@+id/fragment_forecast_item_icon"
+        android:layout_width="@dimen/fragment_forecast_item_icon_outside"
+        android:layout_height="@dimen/fragment_forecast_item_icon_outside"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="@dimen/fragment_forecast_item_icon_outside_margin"
+        tools:src="@drawable/test_fragment_forecast_icon"/>
+
+    <TextView
+        android:id="@+id/fragment_forecast_item_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/fragment_forecast_item_icon_outside_margin"
+        android:layout_marginTop="@dimen/fragment_forecast_item_title_top_margin"
+        android:layout_toRightOf="@id/fragment_forecast_item_icon"
+        android:textStyle="bold"
+        tools:text="Broken clouds on Monday"/>
+
+    <TextView
+        android:id="@+id/fragment_forecast_item_temp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/fragment_forecast_item_title"
+        android:layout_marginLeft="@dimen/fragment_forecast_item_icon_outside_margin"
+        android:layout_toRightOf="@id/fragment_forecast_item_icon"
+        android:textColor="@color/text_grey"
+        tools:text="20°C"/>
+
+</RelativeLayout>

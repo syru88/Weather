@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="prefs_key_unit_of_length">unit_of_length</string>
+    <string name="prefs_key_unit_of_temperature">unit_of_temperature</string>
+    
+    <string name="prefs_title_unit_of_length">Unit of length</string>
+    <string-array name="prefs_entries_unit_of_length">
+        <item>Kilometer</item>
+        <item>Meter</item>
+        <item>Mile</item>
+    </string-array>
+    <string-array name="prefs_values_unit_of_length">
+        <!-- when you change this values, check constants in WeatherUtility -->
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </string-array>
+    <string name="prefs_default_value_unit_of_length">1</string>
+
+    <string name="prefs_title_unit_of_temperature">Unit of temperature</string>
+    <string-array name="prefs_entries_unit_of_temperature">
+        <item>Celsius</item>
+        <item>Fahrenheit</item>
+    </string-array>
+    <string-array name="prefs_values_unit_of_temperature">
+        <!-- when you change this values, check constants in WeatherUtility -->
+        <item>0</item>
+        <item>1</item>
+    </string-array>
+    <string name="prefs_default_value_unit_of_temperature">0</string>
+
+    <!-- preferences for storing cities -->
+    <string name="prefs_cities_storage">prefs_cities_storage</string>
+    <string name="prefs_cities_storage_current_city">prefs_cities_storage_current_city</string>
+    <string name="prefs_current_weather_storage">prefs_current_weather_storage</string>
+    <string name="prefs_forecast_storage">prefs_forecast_storage</string>
+
+</resources>

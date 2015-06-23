@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="@dimen/navigation_menu_height"
+              android:clickable="true"
+              android:gravity="center_vertical"
+              android:orientation="horizontal"
+              android:paddingLeft="@dimen/general_padding"
+              android:paddingRight="@dimen/general_padding">
+
+    <ImageView
+        android:id="@+id/navigation_menu_item_icon"
+        android:layout_width="@dimen/general_icon_18_dp"
+        android:layout_height="@dimen/general_icon_18_dp"
+        tools:source="@drawable/ic_gps_fixed_grey600_18dp.png"/>
+
+    <TextView
+        android:id="@+id/navigation_menu_item_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="@dimen/navigation_menu_left_margin"
+        android:textSize="@dimen/general_title_small_14_sp"
+        tools:text="Current position"/>
+</LinearLayout>
