@@ -7,9 +7,12 @@
     <dimen name="general_icon_18_dp">18dp</dimen>
     <dimen name="general_title_small_14_sp">14sp</dimen>
 
-    <!-- menu item -->
+    <!-- menu item & toolbar -->
     <dimen name="navigation_menu_left_margin">36dp</dimen>
     <dimen name="navigation_menu_height">48dp</dimen>
+    <dimen name="navigation_drawer_max_width">320dp</dimen>
+    <dimen name="navigation_drawer_rigth_margin">56dp</dimen>
+    <dimen name="toolbar_title_left_margin">72dp</dimen>
 
     <!-- today fragment -->
     <dimen name="fragment_today_description_container_up_down_padding">40dp</dimen>

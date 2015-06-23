@@ -1,7 +1,13 @@
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             xmlns:tools="http://schemas.android.com/tools"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent"
-             tools:context="com.marcelsyrucek.weather.fragment.ForecastFragment">
+<android.support.v4.widget.SwipeRefreshLayout
+    android:id="@+id/fragment_forecast_swipe_refresh_layout"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.marcelsyrucek.weather.fragment.ForecastFragment">
 
-</FrameLayout>
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/fragment_forecast_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+</android.support.v4.widget.SwipeRefreshLayout>

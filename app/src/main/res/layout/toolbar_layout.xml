@@ -7,5 +7,7 @@
     android:layout_height="wrap_content"
     android:background="?attr/colorPrimary"
     android:minHeight="?attr/actionBarSize"
+    app:contentInsetStart="@dimen/toolbar_title_left_margin"
+    app:contentInsetLeft="@dimen/toolbar_title_left_margin"
     android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar"
     app:popupTheme="@style/Theme.AppCompat.Light.DarkActionBar"/>

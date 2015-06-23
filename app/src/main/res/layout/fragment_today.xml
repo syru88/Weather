@@ -1,5 +1,5 @@
 <android.support.v4.widget.SwipeRefreshLayout
-    android:id="@+id/swipe_refreshLayout"
+    android:id="@+id/fragment_today_swipe_refresh_layout"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -30,7 +30,7 @@
                 android:layout_height="@dimen/fragment_today_detail_container_height"
                 android:layout_alignParentBottom="true"
                 android:layout_alignParentLeft="true"
-                android:background="@color/white"
+                android:background="@color/text_primary"
                 android:gravity="center_vertical"
                 android:padding="@dimen/general_padding"
                 android:stretchColumns="0,1,2">
@@ -94,7 +94,7 @@
                     android:layout_height="wrap_content"
                     android:layout_alignParentRight="true"
                     android:layout_centerVertical="true"
-                    android:textColor="@color/white"
+                    android:textColor="@color/text_primary"
                     android:textSize="@dimen/fragment_today_temperature"
                     tools:text="24°"/>
 
@@ -105,7 +105,7 @@
                     android:layout_alignParentLeft="true"
                     android:layout_alignParentTop="true"
                     android:layout_toLeftOf="@id/fragment_today_temperature"
-                    android:textColor="@color/white"
+                    android:textColor="@color/text_primary"
                     android:textSize="@dimen/fragment_today_city_name"
                     tools:text="San Francisco"/>
 
@@ -126,7 +126,7 @@
                     android:layout_marginLeft="@dimen/general_half_padding"
                     android:layout_toRightOf="@id/fragment_today_icon"
                     android:gravity="center_vertical"
-                    android:textColor="@color/white"
+                    android:textColor="@color/text_primary"
                     tools:text="Light Rain"/>
 
             </RelativeLayout>

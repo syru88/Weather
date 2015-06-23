@@ -1,13 +1,11 @@
 package com.marcelsyrucek.weather.fragment;
 
-import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.Loader;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,9 +16,8 @@ import android.widget.TextView;
 import com.marcelsyrucek.weather.R;
 import com.marcelsyrucek.weather.WeatherApplication;
 import com.marcelsyrucek.weather.database.model.CurrentWeatherModel;
-import com.marcelsyrucek.weather.database.model.CityModel;
-import com.marcelsyrucek.weather.event.LoadCityEvent;
-import com.marcelsyrucek.weather.loader.TodayLoader;
+import com.marcelsyrucek.weather.event.CurrentWeatherLoadedEvent;
+import com.marcelsyrucek.weather.service.NetworkService;
 import com.marcelsyrucek.weather.utility.Logcat;
 import com.marcelsyrucek.weather.utility.WeatherUtility;
 import com.squareup.otto.Bus;
@@ -30,28 +27,24 @@ import com.squareup.otto.Subscribe;
 /**
  * A simple {@link Fragment} subclass.
  */
-public class TodayFragment extends Fragment implements LoaderManager.LoaderCallbacks<CurrentWeatherModel> {
+public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCallbacks<CurrentWeatherModel>*/ {
 
 	public static final String TAG = TodayFragment.class.getSimpleName();
 
-	public static final String BUNDLE_CITY_MODEL = "BUNDLE_CITY_MODEL";
-
 	private ViewGroup mRoot;
+	private SwipeRefreshLayout mSwipeRefreshLayout;
 	private TextView mCity, mDescription, mTemperature;
 	private ImageView mPoster, mIcon;
 	private TextView mHumidity, mPrecipitation, mPressure, mWind, mDirection;
-	private SwipeRefreshLayout mSwipeRefreshLayout;
 
 	private int mLengthPreference;
 	private int mTempPreference;
 	private String mWindSpeedUnit;
 
-	private CityModel mShownCity;
 	private Bus mBus = WeatherApplication.bus;
 
 	public static TodayFragment newInstance() {
 		TodayFragment fragment = new TodayFragment();
-
 		return fragment;
 	}
 
@@ -60,28 +53,16 @@ public class TodayFragment extends Fragment implements LoaderManager.LoaderCallb
 	}
 
 	@Override
-	public void onActivityCreated(Bundle savedInstanceState) {
-		super.onActivityCreated(savedInstanceState);
-
-		getLoaderManager().initLoader(0, null, this);
-	}
-
-	@Override
-	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		Logcat.d(TAG, "onCreate");
-
-		if (savedInstanceState != null) {
-			mShownCity = (CityModel) savedInstanceState.getSerializable(BUNDLE_CITY_MODEL);
-			Logcat.e(TAG, "mShownCity: " + mShownCity);
-		}
-	}
-
-	@Override
 	public void onStart() {
 		super.onStart();
 		Logcat.d(TAG, "onStart");
 		mBus.register(this);
+		startNetworkService();
+	}
+
+	private void startNetworkService() {
+		Intent intent = new Intent(getActivity(), NetworkService.class);
+		getActivity().startService(intent);
 	}
 
 	@Override
@@ -92,38 +73,19 @@ public class TodayFragment extends Fragment implements LoaderManager.LoaderCallb
 	}
 
 	@Override
-	public void onResume() {
-		super.onResume();
-		Logcat.d(TAG, "onResume");
-	}
-
-	@Override
-	public void onPause() {
-		super.onPause();
-	}
-
-
-	@Override
-	public void onSaveInstanceState(Bundle outState) {
-		outState.putSerializable(BUNDLE_CITY_MODEL, mShownCity);
-
-		super.onSaveInstanceState(outState);
-	}
-
-	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 	                         Bundle savedInstanceState) {
 		Logcat.d(TAG, "onCreateView");
 
 		mRoot = (ViewGroup) inflater.inflate(R.layout.fragment_today, container, false);
 
-		mSwipeRefreshLayout = (SwipeRefreshLayout) mRoot.findViewById(R.id.swipe_refreshLayout);
+		mSwipeRefreshLayout = (SwipeRefreshLayout) mRoot.findViewById(R.id.fragment_today_swipe_refresh_layout);
 		mSwipeRefreshLayout.setColorSchemeResources(R.color.primary);
 		mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 			@Override
 			public void onRefresh() {
 				Logcat.d(TAG, "Manual refresh");
-				getLoaderManager().restartLoader(0, null, TodayFragment.this);
+				startNetworkService();
 			}
 		});
 
@@ -152,60 +114,35 @@ public class TodayFragment extends Fragment implements LoaderManager.LoaderCallb
 
 	@Subscribe
 	/**
-	 * Subscribe this method for listening on {@link LoadCityEvent} which happens when we have old location from
+	 * Subscribe this method for listening on {@link CurrentWeatherLoadedEvent} which happens when we have old location from
 	 * database but the new location is different. So user doesn't wait for position or network neither.
 	 */
-	public void subscribeOnRefreshEvent(LoadCityEvent event) {
+	public void subscribeOnCurrentWeatherLoadedEvent(CurrentWeatherLoadedEvent event) {
+		Logcat.e(TAG, "subscribeOnCurrentWeatherLoadedEvent: " + event.getCurrentWeatherModel());
+
 		if (mSwipeRefreshLayout != null) {
-			mSwipeRefreshLayout.setRefreshing(true);
+			mSwipeRefreshLayout.setRefreshing(false);
 		}
-		CityModel newCity = event.getCityModel();
-		Logcat.e(TAG, "subscribeOnRefreshEvent: " + newCity.getName() + ", long: " + newCity.getLongitude() + ", lat: " + newCity.getLatitude() + ", id: " + newCity.getId());
-//		if (newCity != null && ) {
-//
-//		}
+
+		handleErrors(event.getCurrentWeatherModel());
+		loadData(event.getCurrentWeatherModel());
 
 	}
 
-	private String getWindSpeedUnitFromPref() {
+	private void loadUnitFromPreferences() {
+		Logcat.d(TAG, "loadUnitFromPreferences");
+
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
 		mLengthPreference = Integer.parseInt(preferences.getString(getString(R.string.prefs_key_unit_of_length)
 				, "0"));
 		mTempPreference = Integer.parseInt(preferences.getString(getString(R.string.prefs_key_unit_of_temperature),
 				"0"));
-
-		return WeatherUtility.getWindSpeedUnit(mLengthPreference, getActivity());
-	}
-
-	@Override
-	public Loader<CurrentWeatherModel> onCreateLoader(int id, Bundle args) {
-		Logcat.e(TAG, "onCreateLoader");
-
-		return new TodayLoader(getActivity());
-	}
-
-	@Override
-	public void onLoadFinished(Loader<CurrentWeatherModel> loader, CurrentWeatherModel data) {
-		Logcat.e(TAG, "onLoadFinished");
-		if (mSwipeRefreshLayout != null) {
-			mSwipeRefreshLayout.setRefreshing(false);
-		}
-
-//		WeatherApplication.bus.post(new CityLoadedEvent());
-		loadData(data);
-		if (data.isError()) {
-			handleErrors(data);
-		}
-
-	}
-
-	@Override
-	public void onLoaderReset(Loader<CurrentWeatherModel> loader) {
-		Logcat.e(TAG, "onLoaderReset");
 	}
 
 	private void loadData(CurrentWeatherModel currentWeatherModel) {
-		mWindSpeedUnit = getWindSpeedUnitFromPref();
+		loadUnitFromPreferences();
+
+		mWindSpeedUnit = WeatherUtility.getWindSpeedUnit(mLengthPreference, getActivity());
 
 		mCity.setText(currentWeatherModel.getCity());
 		mDescription.setText(currentWeatherModel.getDescription());
@@ -223,7 +160,9 @@ public class TodayFragment extends Fragment implements LoaderManager.LoaderCallb
 	}
 
 	private void handleErrors(CurrentWeatherModel currentWeather) {
-		Snackbar.make(mRoot, currentWeather.getErrorText(), Snackbar.LENGTH_LONG).show();
+		if (currentWeather.isError()) {
+			Snackbar.make(mRoot, currentWeather.getErrorText(), Snackbar.LENGTH_LONG).show();
+		}
 	}
 
 

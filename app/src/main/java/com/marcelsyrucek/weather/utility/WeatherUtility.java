@@ -1,6 +1,9 @@
 package com.marcelsyrucek.weather.utility;
 
 import android.content.Context;
+import android.graphics.Point;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Display;
 
 import com.marcelsyrucek.weather.R;
 
@@ -26,7 +29,23 @@ public class WeatherUtility {
 	private static final double METER_SEC_TO_KILO_HOUR = 3.6;
 	private static final double METER_SEC_TO_MILE_HOUR = 2.2369362920544;
 
+	private static int sWidth;
+
 	private static String directions[] = {"N", "NE", "E", "SE", "S", "SW", "W", "NW"};
+
+	// move to general utility class
+	public static int getDisplayWidth(AppCompatActivity activity) {
+		if (sWidth != 0) {
+			return sWidth;
+		}
+
+		Display display = activity.getWindowManager().getDefaultDisplay();
+		Point point = new Point();
+		display.getSize(point);
+		sWidth = point.x;
+
+		return sWidth;
+	}
 
 	public static double getTemperature(int unit, double value) {
 		switch (unit) {

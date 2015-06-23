@@ -31,7 +31,7 @@ public class CityDatabase {
 	}
 
 	private CityDatabase(Context context) {
-		mContext = context;
+		mContext = context.getApplicationContext();
 		mDatabase = new GeneralDatabase<>(mContext, mContext.getString(R.string.prefs_cities_storage), CityModel.class);
 
 		// prepare data for showing city with last current position
@@ -61,6 +61,17 @@ public class CityDatabase {
 		} else {
 			return cityModel;
 		}
+	}
+
+	public void editCurrentCity(CityModel cityModel) {
+		mDatabase.editEntry(mContext.getString(R.string.prefs_cities_storage_current_city), cityModel);
+	}
+
+	public boolean isCityInDatabase(CityModel cityModel) {
+		if (cityModel == null) {
+			return false;
+		}
+		return mDatabase.isEntryInDatabase(cityModel.getId());
 	}
 
 }

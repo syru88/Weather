@@ -5,9 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.google.gson.annotations.Expose;
+import com.marcelsyrucek.weather.database.model.CityModel;
 import com.marcelsyrucek.weather.pojo.WebErrorData;
 
-public class CurrentWeather extends WebErrorData {
+public class CurrentWeatherPojo extends WebErrorData {
 
 	@Expose
 	private int id;
@@ -29,6 +30,26 @@ public class CurrentWeather extends WebErrorData {
 	private Clouds clouds;
 	@Expose
 	private Rain rain;
+
+	public CityModel getCityModel() {
+		CityModel cityModel = new CityModel();
+
+		cityModel.setName(getNameWithCountry());
+		cityModel.setId(id+"");
+		if (coord != null) {
+			cityModel.setLatitude(coord.getLat());
+			cityModel.setLongitude(coord.getLon());
+		}
+
+		return cityModel;
+	}
+
+	public String getNameWithCountry() {
+		if (sys != null && sys.getCountry() != null) {
+			return name + ", " + sys.getCountry();
+		}
+		return name;
+	}
 
 	/**
 	 * @return The id

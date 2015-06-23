@@ -3,8 +3,14 @@
 
     <!-- General -->
     <string name="general_ok">ok</string>
-    <string name="general_error_network_message">Problem with server, network...</string>
     <string name="general_waiting_for_current_location">Waiting for current location</string>
+
+    <!-- Network errors -->
+    <string name="network_error_no_connection">No connection</string>
+    <string name="network_error_timeout">No response in timeout</string>
+    <string name="network_error_parse">Parsing error</string>
+    <string name="network_error_general">General network error</string>
+    <string name="network_error_invalid_request">Invalid request</string>
 
     <!-- Weather information -->
     <string name="weather_temp_degree">°</string>

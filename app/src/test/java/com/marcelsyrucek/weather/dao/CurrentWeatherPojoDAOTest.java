@@ -11,7 +11,7 @@ import static org.junit.Assert.*;
 /**
  * Created by marcel on 18.6.2015.
  */
-public class CurrentWeatherDAOTest {
+public class CurrentWeatherPojoDAOTest {
 
 	private CurrentWeatherModel mDAO;
 

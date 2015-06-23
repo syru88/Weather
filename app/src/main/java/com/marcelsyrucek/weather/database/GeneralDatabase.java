@@ -23,7 +23,7 @@ public class GeneralDatabase<T extends JsonRecord> {
 	private SharedPreferences.Editor mEditor;
 
 	public GeneralDatabase(Context context, String databaseName, Class<T> typeClass) {
-		mContext = context;
+		mContext = context.getApplicationContext();
 		TAG = "DATABASE_" + databaseName;
 		mTypeClass = typeClass;
 		mSharedPreferences = context.getSharedPreferences(databaseName, Context.MODE_PRIVATE);
@@ -111,6 +111,11 @@ public class GeneralDatabase<T extends JsonRecord> {
 		Gson gson = new Gson();
 
 		return gson.fromJson(databaseEntry, this.mTypeClass);
+	}
+
+	public boolean isEntryInDatabase(String id) {
+		String databaseEntry = mSharedPreferences.getString(id, null);
+		return databaseEntry == null ? false : true;
 	}
 
 	public ArrayList<T> getEntries() {

@@ -33,6 +33,8 @@
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value=".activity.MainActivity"/>
         </activity>
+
+        <service android:name=".service.NetworkService" />
     </application>
 
 </manifest>

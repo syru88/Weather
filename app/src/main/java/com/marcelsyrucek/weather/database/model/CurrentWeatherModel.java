@@ -2,7 +2,7 @@ package com.marcelsyrucek.weather.database.model;
 
 import com.marcelsyrucek.weather.WeatherConfig;
 import com.marcelsyrucek.weather.database.JsonRecord;
-import com.marcelsyrucek.weather.pojo.currentweather.CurrentWeather;
+import com.marcelsyrucek.weather.pojo.currentweather.CurrentWeatherPojo;
 import com.marcelsyrucek.weather.utility.WeatherUtility;
 
 /**
@@ -34,9 +34,9 @@ public class CurrentWeatherModel extends AgeAndExceptionData implements JsonReco
 		mPressure = newWeather.mPressure;
 	}
 
-	public CurrentWeatherModel(CurrentWeather pojo) {
+	public CurrentWeatherModel(CurrentWeatherPojo pojo) {
 		mId = String.valueOf(pojo.getId());
-		mCity = pojo.getName();
+		mCity = pojo.getNameWithCountry();
 		// according to API documentation many parameters are optional, so we need to check it for null references :-(
 		if (pojo.getWeather() != null && pojo.getWeather().size() > 0 && pojo.getWeather().get(0) != null) {
 			mDescription = pojo.getWeather().get(0).getDescription();
@@ -54,10 +54,11 @@ public class CurrentWeatherModel extends AgeAndExceptionData implements JsonReco
 			mWindDirection = pojo.getWind().getDeg();
 		}
 
-		if (pojo.getSys() != null && pojo.getSys().getCountry() != null) {
-			mCity += ", " + pojo.getSys().getCountry();
-		}
+	}
 
+	@Override
+	public String toString() {
+		return "CurrentWeatherModel: " + mId + ", city: " + mCity + ", error: " + getErrorText();
 	}
 
 	public String getCity() {

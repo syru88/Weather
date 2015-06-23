@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 
 import com.marcelsyrucek.weather.R;
 import com.marcelsyrucek.weather.database.model.CityModel;
+import com.marcelsyrucek.weather.utility.Logcat;
 
 import java.util.ArrayList;
 
@@ -16,18 +17,25 @@ import java.util.ArrayList;
 public class MenuItemAdapter extends RecyclerView.Adapter<MenuItemViewHolder> {
 
 	public interface MenuClickListener {
-		void onMenuClick(int position);
+		void onCityMenuClick(CityModel cityModel);
 	}
 
-	private MenuClickListener mListener;
-	private ArrayList<CityModel> mCities;
+	public static final String TAG = MenuItemAdapter.class.getSimpleName();
 
-	public MenuItemAdapter(MenuClickListener listener) {
-		mListener = listener;
+	private static final int NO_POSITION = -1;
+
+	private ArrayList<CityModel> mCities;
+	private MenuClickListener mMenuClickListener;
+	private int mLastSelectedItem = NO_POSITION;
+
+	public MenuItemAdapter(ArrayList<CityModel> cities, MenuClickListener menuClickListener) {
+		mCities = cities;
+		mMenuClickListener = menuClickListener;
 	}
 
 	public void setCities(ArrayList<CityModel> cities) {
 		mCities = cities;
+		notifyDataSetChanged();
 	}
 
 	@Override
@@ -41,8 +49,12 @@ public class MenuItemAdapter extends RecyclerView.Adapter<MenuItemViewHolder> {
 	}
 
 	@Override
-	public void onBindViewHolder(MenuItemViewHolder menuItemViewHolder, final int i) {
-		CityModel model = mCities.get(i);
+	public void onBindViewHolder(final MenuItemViewHolder menuItemViewHolder, final int i) {
+		final CityModel model = mCities.get(i);
+
+		if (mLastSelectedItem != NO_POSITION) {
+			menuItemViewHolder.itemView.setSelected(false);
+		}
 
 		menuItemViewHolder.title.setText(model.getName());
 		if (i == 0) {
@@ -53,17 +65,19 @@ public class MenuItemAdapter extends RecyclerView.Adapter<MenuItemViewHolder> {
 		menuItemViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				mListener.onMenuClick(i);
+				Logcat.e(TAG, "last: " + mLastSelectedItem + ", cur: " + i);
+				menuItemViewHolder.itemView.setSelected(true);
+				if (mLastSelectedItem != NO_POSITION) {
+					notifyItemChanged(mLastSelectedItem);
+				}
+				mLastSelectedItem = i;
+				mMenuClickListener.onCityMenuClick(model);
 			}
 		});
 	}
 
 	@Override
 	public int getItemCount() {
-		if (mCities == null) {
-			return 0;
-		} else {
-			return mCities.size();
-		}
+		return mCities.size();
 	}
 }
