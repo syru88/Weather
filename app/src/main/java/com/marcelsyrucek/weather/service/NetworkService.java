@@ -46,8 +46,8 @@ public class NetworkService extends Service {
 	/** when true we know that application is still active so don't stop service */
 	private boolean mServiceWasCalled;
 
-	private CityModel mShownCity;
 	private int mRequestValue;
+	private CityModel mLastLoadedCity;
 	private CurrentWeatherModel mCurrentWeather;
 	private ForecastWeatherModelList mForecast;
 
@@ -64,20 +64,11 @@ public class NetworkService extends Service {
 		CityModel requestedCity = (CityModel) intent.getSerializableExtra(EXTRA_CITY);
 		mRequestValue = intent.getIntExtra(EXTRA_REQUEST, REQUEST_VALUE_CURRENT_WEATHER);
 
-		Logcat.e(TAG, "onStartCommand: " + requestedCity + ", request: " + mRequestValue + ", shown: " + mShownCity);
-
-		if (requestedCity == null && mShownCity == null) {
-			Logcat.e(TAG, "Both cities null, so go away and don't contact server");
-			return START_NOT_STICKY;
-		}
-
-		if (requestedCity != null) {
-			Logcat.e(TAG, "Call from Activity!!!");
-		}
+		Logcat.e(TAG, "onStartCommand: " + requestedCity + ", request: " + mRequestValue + ", shown: " + mLastLoadedCity);
 
 		if (requestedCity == null) {
-			Logcat.d(TAG, "Called from fragment for refresh or first connection");
-			requestedCity = mShownCity;
+			Logcat.e(TAG, "We can't ask anything without city!");
+			return START_NOT_STICKY;
 		}
 
 		// which request was requested
@@ -98,8 +89,8 @@ public class NetworkService extends Service {
 		Logcat.d(TAG, "getCurrentWeather");
 
 		// we already have data for this location
-		if (mCurrentWeather != null && requestedCity.equals(mShownCity)) {
-			Logcat.d(TAG, "Not load, send data");
+		if (mCurrentWeather != null && mCurrentWeather.getId().equals(requestedCity.getId())) {
+			Logcat.d(TAG, "The information have been already loaded.");
 			produceCurrentWeatherLoadedEvent();
 			return;
 		}
@@ -118,7 +109,7 @@ public class NetworkService extends Service {
 					mCurrentWeather.setErrorText(getString(R.string.network_error_server) + response.getCod());
 				} else {
 					mCurrentWeather = new CurrentWeatherModel(response);
-					mShownCity = response.getCityModel();
+					mLastLoadedCity = response.getCityModel();
 					produceCityLoadedEvent();
 				}
 				produceCurrentWeatherLoadedEvent();
@@ -144,8 +135,8 @@ public class NetworkService extends Service {
 		Logcat.d(TAG, "getForecastWeather");
 
 		// we already have data for this location
-		if (mForecast != null && requestedCity.equals(mShownCity)) {
-			Logcat.d(TAG, "Not load, send data");
+		if (mForecast != null && mForecast.getId().equals(requestedCity.getId())) {
+			Logcat.d(TAG, "The information have been already loaded.");
 			produceForecastLoadedEvent();
 			return;
 		}
@@ -164,7 +155,7 @@ public class NetworkService extends Service {
 				} else {
 					mForecast = new ForecastWeatherModelList(response, " " + getString(R.string.forecast_day_preposition)
 							+ " ");
-					mShownCity = response.getCityModel();
+					mLastLoadedCity = response.getCityModel();
 					produceCityLoadedEvent();
 				}
 				produceForecastLoadedEvent();
@@ -185,8 +176,8 @@ public class NetworkService extends Service {
 	}
 
 	private void produceCityLoadedEvent() {
-		Logcat.d(TAG, "produceCityLoadedEvent: " + mShownCity);
-		mBus.post(new CityLoadedEvent(mShownCity));
+		Logcat.d(TAG, "produceCityLoadedEvent: " + mLastLoadedCity);
+		mBus.post(new CityLoadedEvent(mLastLoadedCity));
 	}
 
 	private void produceCurrentWeatherLoadedEvent() {

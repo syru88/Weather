@@ -32,6 +32,7 @@ import com.marcelsyrucek.weather.adapter.MenuAdapter;
 import com.marcelsyrucek.weather.database.CityDatabase;
 import com.marcelsyrucek.weather.database.model.CityModel;
 import com.marcelsyrucek.weather.dialog.AboutDialogFragment;
+import com.marcelsyrucek.weather.event.CityClickedEvent;
 import com.marcelsyrucek.weather.event.CityLoadedEvent;
 import com.marcelsyrucek.weather.fragment.ForecastFragment;
 import com.marcelsyrucek.weather.fragment.TodayFragment;
@@ -41,15 +42,18 @@ import com.marcelsyrucek.weather.utility.GeoLocationManager;
 import com.marcelsyrucek.weather.utility.Logcat;
 import com.marcelsyrucek.weather.utility.WeatherUtility;
 import com.squareup.otto.Bus;
+import com.squareup.otto.Produce;
 import com.squareup.otto.Subscribe;
 
 public class MainActivity extends AppCompatActivity implements GeoLocationListener, MenuAdapter.MenuClickListener {
 
 	public static final String TAG = MainActivity.class.getSimpleName();
+	public static final String BUNDLE_LAST_SHOWN_CITY = "BUNDLE_LAST_SHOWN_CITY";
 
 	private static final int REQUEST_CODE_RECOVER_GOOGLE_PLAY_SERVICES = 1;
 
 	private static final String BUNDLE_M_IS_POSITION_RECEIVED = "BUNDLE_M_IS_POSITION_RECEIVED";
+	private static final String BUNDLE_LAST_KNOWN_LOCATION = "BUNDLE_LAST_KNOWN_LOCATION";
 
 	private Toolbar mToolbar;
 	private DrawerLayout mDrawerLayout;
@@ -78,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 
 		if (savedInstanceState != null) {
 			mIsPositionReceived = savedInstanceState.getBoolean(BUNDLE_M_IS_POSITION_RECEIVED, true);
+			mRequestedCity = (CityModel) savedInstanceState.getSerializable(BUNDLE_LAST_SHOWN_CITY);
+			mLastKnownLocation = savedInstanceState.getParcelable(BUNDLE_LAST_KNOWN_LOCATION);
 		}
 
 		// prepare location manager
@@ -88,13 +94,17 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		setupDrawer();
 		setupMainMenu();
 		setupViewPager();
-		loadCities();
+		if (mLastKnownLocation == null) {
+			loadCities();
+		}
 
 	}
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
 		outState.putBoolean(BUNDLE_M_IS_POSITION_RECEIVED, mIsPositionReceived);
+		outState.putParcelable(BUNDLE_LAST_KNOWN_LOCATION, mLastKnownLocation);
+		outState.putSerializable(BUNDLE_LAST_SHOWN_CITY, mRequestedCity);
 
 		super.onSaveInstanceState(outState);
 	}
@@ -115,9 +125,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 	protected void onResume() {
 		super.onResume();
 
-		if (mIsPositionReceived == false) {
-			mGeoLocationManager.registerListener(this);
-		}
+		mGeoLocationManager.registerListener(this);
 	}
 
 	@Override
@@ -149,7 +157,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 			@Override
 			public boolean onQueryTextSubmit(String query) {
 				mRequestedCity = new CityModel(query);
-				startNetworkService();
+				sendCityClickEvent();
 				mSearchMenuItem.collapseActionView();
 				return true;
 			}
@@ -203,6 +211,9 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 	private void setupToolbar() {
 		mToolbar = (Toolbar) findViewById(R.id.activity_main_toolbar);
 		setSupportActionBar(mToolbar);
+		if (mRequestedCity != null) {
+			mToolbar.setTitle(mRequestedCity.getName());
+		}
 	}
 
 	private void setupDrawer() {
@@ -228,23 +239,6 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		mCityRecyclerView.setLayoutManager(layoutManager);
 	}
 
-	@Subscribe
-	public void subscribeOnCityLoadedEvent(CityLoadedEvent cityLoadedEvent) {
-		CityModel receivedCity = cityLoadedEvent.getCityModel();
-		Logcat.e(TAG, "CityLoadedEvent: " + receivedCity);
-
-		if (GeoLocationManager.isLocationInArea(receivedCity.getLatitude(), receivedCity.getLongitude(), mCityWithCurrentPosition, new
-				float[3])) {
-			Logcat.d(TAG, "We just received current position, so change name");
-			CityDatabase.getInstance(this).editCurrentCity(receivedCity);
-			mMenuAdapter.setCities(CityDatabase.getInstance(this).getCities());
-		}
-
-		mRequestedCity = receivedCity;
-		mToolbar.setTitle(mRequestedCity.getName());
-
-	}
-
 	private void setupViewPager() {
 		Logcat.d(TAG, "setupViewPager");
 		mPagerAdapter = new PagerAdapter(getSupportFragmentManager());
@@ -253,16 +247,13 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 
 		mTabLayout = (TabLayout) findViewById(R.id.activity_main_tab_layout);
 		mTabLayout.setupWithViewPager(mViewPager);
+
+		mLoadingContainer = (ViewGroup) findViewById(R.id.activity_main_loading_container);
 	}
 
 	private void loadCities() {
 		Logcat.d(TAG, "loadCities");
 
-		// prepare UI
-		mLoadingContainer = (ViewGroup) findViewById(R.id.activity_main_loading_container);
-
-		// get current position and if we can't get it, register listener and meanwhile show last current city and
-		// refresh its data
 		mLastKnownLocation = mGeoLocationManager.getLastKnownLocation();
 
 		if (mLastKnownLocation == null) {
@@ -280,13 +271,39 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 						PorterDuff.Mode
 								.SRC_IN);
 			} else {
-				startNetworkService();
+				sendCityClickEvent();
 			}
 		} else {
 			// we have current location so load data about it
 			prepareCityWithCurrentPosition();
-			startNetworkService();
+			sendCityClickEvent();
 		}
+	}
+
+	@Subscribe
+	public void subscribeOnCityLoadedEvent(CityLoadedEvent cityLoadedEvent) {
+		CityModel receivedCity = cityLoadedEvent.getCityModel();
+		Logcat.e(TAG, "CityLoadedEvent: " + receivedCity);
+
+		if (GeoLocationManager.isLocationInArea(receivedCity.getLatitude(), receivedCity.getLongitude(), mCityWithCurrentPosition, new
+				float[3])) {
+			Logcat.d(TAG, "We just received current position, so change name");
+			CityDatabase.getInstance(this).editCurrentCity(receivedCity);
+			mMenuAdapter.setCities(CityDatabase.getInstance(this).getCities());
+		}
+
+		mRequestedCity = receivedCity;
+		mToolbar.setTitle(mRequestedCity.getName());
+
+	}
+
+	private void sendCityClickEvent() {
+		mBus.post(new CityClickedEvent(mRequestedCity));
+	}
+
+	@Produce
+	public CityClickedEvent produceLastCityClickedEvent() {
+		return new CityClickedEvent(mRequestedCity);
 	}
 
 	private void prepareCityWithCurrentPosition() {
@@ -294,17 +311,11 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		mCityWithCurrentPosition.setLatitude(mLastKnownLocation.getLatitude());
 		mCityWithCurrentPosition.setLongitude(mLastKnownLocation.getLongitude());
 		mCityWithCurrentPosition.setName(getString(R.string.menu_menu_current_position));
-		mCityWithCurrentPosition.setIsCurrent(true);
+		mCityWithCurrentPosition.setId(getString(R.string.prefs_cities_storage_current_city));
 
 		mRequestedCity = mCityWithCurrentPosition;
 
 		CityDatabase.getInstance(getApplicationContext()).editCurrentCity(mRequestedCity);
-	}
-
-	private void startNetworkService() {
-		Intent i = new Intent(this, NetworkService.class);
-		i.putExtra(NetworkService.EXTRA_CITY, mRequestedCity);
-		startService(i);
 	}
 
 	@Override
@@ -321,25 +332,24 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		// if current location isn't in area which has already been requested, refresh data
 		if (!GeoLocationManager.isLocationInArea(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(),
 				mRequestedCity, new float[3])) {
-			Logcat.d(TAG, "The new location is different from old one, so refresh");
+			Logcat.e(TAG, "The new location is different from old one, so refresh");
 
 			prepareCityWithCurrentPosition();
-			startNetworkService();
+			sendCityClickEvent();
 		}
 
 	}
 
 	@Override
 	public void onCityMenuClick(CityModel cityModel) {
-		if (cityModel.isCurrentPosition()) {
+		if (getString(R.string.prefs_cities_storage_current_city).equals(cityModel.getId())) {
 			Logcat.e(TAG, "Obtain new current position");
 			mGeoLocationManager.reloadCurrentPosition();
 			loadCities();
 		}
 		mRequestedCity = cityModel;
 		mDrawerLayout.closeDrawer(Gravity.LEFT);
-		mToolbar.setTitle(mRequestedCity.getName());
-		startNetworkService();
+		sendCityClickEvent();
 	}
 
 	private void addCityToDabase() {

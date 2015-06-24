@@ -88,10 +88,17 @@ public class GeoLocationManager implements GoogleApiClient.ConnectionCallbacks, 
 		}
 		Logcat.d(TAG, "registerListener");
 
-		mGeoLocationListener = geoLocationListener;
-		if (mLocation != null) {
-			mGeoLocationListener.lastKnownLocation(mLocation);
+		if (mGoogleApiClient != null && !mGoogleApiClient.isConnected()) {
+			mGoogleApiClient.connect();
 		}
+
+		if (mAndroidManager != null) {
+			getAndroidLocation();
+		}
+
+		mGeoLocationListener = geoLocationListener;
+		// try to get new position
+		mLocation = null;
 	}
 
 	public void reloadCurrentPosition() {

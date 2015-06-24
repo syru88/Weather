@@ -66,15 +66,11 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuItemViewHolder> {
 			@Override
 			public void onClick(View v) {
 				Logcat.e(TAG, "last: " + mLastSelectedItem + ", cur: " + i);
-				menuItemViewHolder.itemView.setSelected(true);
 				if (mLastSelectedItem != NO_POSITION) {
 					notifyItemChanged(mLastSelectedItem);
 				}
+				menuItemViewHolder.itemView.setSelected(true);
 				mLastSelectedItem = i;
-
-				if (i == 0) {
-					model.setIsCurrent(true);
-				}
 				mMenuClickListener.onCityMenuClick(model);
 			}
 		});

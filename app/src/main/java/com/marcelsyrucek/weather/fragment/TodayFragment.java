@@ -15,7 +15,11 @@ import android.widget.TextView;
 
 import com.marcelsyrucek.weather.R;
 import com.marcelsyrucek.weather.WeatherApplication;
+import com.marcelsyrucek.weather.activity.MainActivity;
+import com.marcelsyrucek.weather.database.model.CityModel;
 import com.marcelsyrucek.weather.database.model.CurrentWeatherModel;
+import com.marcelsyrucek.weather.event.CityClickedEvent;
+import com.marcelsyrucek.weather.event.CityLoadedEvent;
 import com.marcelsyrucek.weather.event.CurrentWeatherLoadedEvent;
 import com.marcelsyrucek.weather.service.NetworkService;
 import com.marcelsyrucek.weather.utility.Logcat;
@@ -41,6 +45,8 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 	private int mTempPreference;
 	private String mWindSpeedUnit;
 
+	private CityModel mShownCity;
+
 	private Bus mBus = WeatherApplication.bus;
 
 	public static TodayFragment newInstance() {
@@ -53,15 +59,33 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 	}
 
 	@Override
+	public void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+
+		if (savedInstanceState != null) {
+			mShownCity = (CityModel) savedInstanceState.getSerializable(MainActivity.BUNDLE_LAST_SHOWN_CITY);
+		}
+		Logcat.d(TAG, "onCreate, mShownCity: " + mShownCity);
+	}
+
+	@Override
 	public void onStart() {
 		super.onStart();
 		mBus.register(this);
-		startNetworkService();
 	}
 
 	private void startNetworkService() {
 		Intent intent = new Intent(getActivity(), NetworkService.class);
+		intent.putExtra(NetworkService.EXTRA_CITY, mShownCity);
 		getActivity().startService(intent);
+	}
+
+	@Override
+	public void onSaveInstanceState(Bundle outState) {
+		Logcat.d(TAG, "onSaveInstanceState");
+		outState.putSerializable(MainActivity.BUNDLE_LAST_SHOWN_CITY, mShownCity);
+
+		super.onSaveInstanceState(outState);
 	}
 
 	@Override
@@ -117,6 +141,19 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 	public void onDestroyView() {
 		super.onDestroyView();
 		Logcat.d(TAG, "onDestroyView");
+	}
+
+	@Subscribe
+	public void subscribeOnCityClickedEvent(CityClickedEvent event) {
+		Logcat.e(TAG, "CityClickedEvent: " + event.getCityModel());
+		mShownCity = event.getCityModel();
+		startNetworkService();
+	}
+
+	@Subscribe
+	public void subscribeOnCityLoadedEvent(CityLoadedEvent event) {
+		Logcat.d(TAG, "CityLoadedEvent: " + event.getCityModel());
+		mShownCity = event.getCityModel();
 	}
 
 	/**
