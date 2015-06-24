@@ -71,13 +71,14 @@
         </LinearLayout>
 
         <FrameLayout
-            android:layout_width="match_parent"
+			android:id="@+id/activity_main_menu_container"
+            android:layout_width="@dimen/navigation_drawer_max_width"
             android:layout_height="match_parent"
             android:layout_gravity="left">
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/activity_main_navigation_view"
-                android:layout_width="@dimen/navigation_drawer_max_width"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="@color/text_primary"
                 />

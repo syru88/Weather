@@ -67,7 +67,7 @@ public class NetworkService extends Service {
 		Logcat.e(TAG, "onStartCommand: " + requestedCity + ", request: " + mRequestValue + ", shown: " + mLastLoadedCity);
 
 		if (requestedCity == null) {
-			Logcat.e(TAG, "We can't ask anything without city!");
+			Logcat.d(TAG, "We can't ask anything without city!");
 			return START_NOT_STICKY;
 		}
 
@@ -89,8 +89,8 @@ public class NetworkService extends Service {
 		Logcat.d(TAG, "getCurrentWeather");
 
 		// we already have data for this location
-		if (mCurrentWeather != null && mCurrentWeather.getId().equals(requestedCity.getId())) {
-			Logcat.d(TAG, "The information have been already loaded.");
+		if (mCurrentWeather != null && mCurrentWeather.getId() != null && mCurrentWeather.getId().equals(requestedCity.getId())) {
+//			Logcat.d(TAG, "The information have been already loaded.");
 			produceCurrentWeatherLoadedEvent();
 			return;
 		}
@@ -135,8 +135,8 @@ public class NetworkService extends Service {
 		Logcat.d(TAG, "getForecastWeather");
 
 		// we already have data for this location
-		if (mForecast != null && mForecast.getId().equals(requestedCity.getId())) {
-			Logcat.d(TAG, "The information have been already loaded.");
+		if (mForecast != null && mForecast.getId() != null && mForecast.getId().equals(requestedCity.getId())) {
+//			Logcat.d(TAG, "The information have been already loaded.");
 			produceForecastLoadedEvent();
 			return;
 		}
@@ -144,7 +144,7 @@ public class NetworkService extends Service {
 		GetForecastRequest.getForecastWeather(requestedCity, getApplicationContext(), new Response.Listener<ForecastPojo>() {
 			@Override
 			public void onResponse(ForecastPojo response) {
-				Logcat.d(TAG, "onResponse: " + response.getCity());
+				Logcat.d(TAG, "onResponse: " + response.getCity().getName());
 				if (!"200".equals(response.getCod())) {
 					Logcat.e(TAG, "Error in server data: " + response.getCod());
 					if (mForecast == null) {
@@ -176,17 +176,17 @@ public class NetworkService extends Service {
 	}
 
 	private void produceCityLoadedEvent() {
-		Logcat.d(TAG, "produceCityLoadedEvent: " + mLastLoadedCity);
+//		Logcat.d(TAG, "produceCityLoadedEvent: " + mLastLoadedCity);
 		mBus.post(new CityLoadedEvent(mLastLoadedCity));
 	}
 
 	private void produceCurrentWeatherLoadedEvent() {
-		Logcat.d(TAG, "produceCurrentWeatherLoadedEvent: " + mCurrentWeather);
+//		Logcat.d(TAG, "produceCurrentWeatherLoadedEvent: " + mCurrentWeather);
 		mBus.post(new CurrentWeatherLoadedEvent(mCurrentWeather));
 	}
 
 	private void produceForecastLoadedEvent() {
-		Logcat.d(TAG, "produceForecastLoadedEvent: " + mForecast);
+//		Logcat.d(TAG, "produceForecastLoadedEvent: " + mForecast);
 		mBus.post(new ForecastLoadedEvent(mForecast));
 	}
 

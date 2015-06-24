@@ -74,9 +74,15 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 		mBus.register(this);
 	}
 
-	private void startNetworkService() {
+	private void startNetworkService(boolean showProgress) {
 		Intent intent = new Intent(getActivity(), NetworkService.class);
+		intent.putExtra(NetworkService.EXTRA_REQUEST, NetworkService.REQUEST_VALUE_CURRENT_WEATHER);
 		intent.putExtra(NetworkService.EXTRA_CITY, mShownCity);
+
+		if (mSwipeRefreshLayout != null && showProgress) {
+			mSwipeRefreshLayout.setRefreshing(true);
+		}
+
 		getActivity().startService(intent);
 	}
 
@@ -94,14 +100,15 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 		mBus.unregister(this);
 	}
 
-	@Override
-	public void setUserVisibleHint(boolean isVisibleToUser) {
-		super.setUserVisibleHint(isVisibleToUser);
-
-		if (isVisibleToUser) {
-			startNetworkService();
-		}
-	}
+//	@Override
+//	public void setUserVisibleHint(boolean isVisibleToUser) {
+//		Logcat.d(TAG, "setUserVisibleHint");
+//		super.setUserVisibleHint(isVisibleToUser);
+//
+//		if (isVisibleToUser) {
+//			startNetworkService(true);
+//		}
+//	}
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -116,7 +123,7 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 			@Override
 			public void onRefresh() {
 				Logcat.d(TAG, "Manual refresh");
-				startNetworkService();
+				startNetworkService(false);
 			}
 		});
 
@@ -147,7 +154,7 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 	public void subscribeOnCityClickedEvent(CityClickedEvent event) {
 		Logcat.e(TAG, "CityClickedEvent: " + event.getCityModel());
 		mShownCity = event.getCityModel();
-		startNetworkService();
+		startNetworkService(true);
 	}
 
 	@Subscribe

@@ -4,7 +4,7 @@ import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.location.Location;
 import android.os.Bundle;
-import android.os.PersistableBundle;
+import android.support.design.widget.Snackbar;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -37,7 +37,6 @@ import com.marcelsyrucek.weather.event.CityLoadedEvent;
 import com.marcelsyrucek.weather.fragment.ForecastFragment;
 import com.marcelsyrucek.weather.fragment.TodayFragment;
 import com.marcelsyrucek.weather.listener.GeoLocationListener;
-import com.marcelsyrucek.weather.service.NetworkService;
 import com.marcelsyrucek.weather.utility.GeoLocationManager;
 import com.marcelsyrucek.weather.utility.Logcat;
 import com.marcelsyrucek.weather.utility.WeatherUtility;
@@ -52,13 +51,15 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 
 	private static final int REQUEST_CODE_RECOVER_GOOGLE_PLAY_SERVICES = 1;
 
-	private static final String BUNDLE_M_IS_POSITION_RECEIVED = "BUNDLE_M_IS_POSITION_RECEIVED";
 	private static final String BUNDLE_LAST_KNOWN_LOCATION = "BUNDLE_LAST_KNOWN_LOCATION";
+	private static final String BUNDLE_MENU_POSITION = "BUNDLE_MENU_POSITION";
+	private static final String BUNDLE_TAB_POSITION = "BUNDLE_TAB_POSITION";
 
 	private Toolbar mToolbar;
 	private DrawerLayout mDrawerLayout;
 	private ActionBarDrawerToggle mDrawerToggle;
 	private RecyclerView mCityRecyclerView;
+	private ViewGroup mMenuContainer;
 
 	private TabLayout mTabLayout;
 	private ViewGroup mLoadingContainer;
@@ -66,13 +67,17 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 	private PagerAdapter mPagerAdapter;
 
 	private GeoLocationManager mGeoLocationManager;
-	private Location mLastKnownLocation;
-	private CityModel mRequestedCity, mCityWithCurrentPosition;
-	private boolean mIsPositionReceived = true;
+	private boolean mIsRequestForCurrentPosition;
 
 	private Bus mBus = WeatherApplication.bus;
 	private MenuAdapter mMenuAdapter;
 	private MenuItem mSearchMenuItem;
+
+	// fields to be saved
+	private Location mLastKnownLocation;
+	private CityModel mRequestedCity;
+	private int mMenuItemPosition = MenuAdapter.NO_POSITION;
+	private int mTabPosition;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -81,13 +86,14 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		setContentView(R.layout.activity_main);
 
 		if (savedInstanceState != null) {
-			mIsPositionReceived = savedInstanceState.getBoolean(BUNDLE_M_IS_POSITION_RECEIVED, true);
 			mRequestedCity = (CityModel) savedInstanceState.getSerializable(BUNDLE_LAST_SHOWN_CITY);
 			mLastKnownLocation = savedInstanceState.getParcelable(BUNDLE_LAST_KNOWN_LOCATION);
+			mMenuItemPosition = savedInstanceState.getInt(BUNDLE_MENU_POSITION, MenuAdapter.NO_POSITION);
+			mTabPosition = savedInstanceState.getInt(BUNDLE_TAB_POSITION, 0);
 		}
 
 		// prepare location manager
-		mGeoLocationManager = GeoLocationManager.getInstance(getApplicationContext());
+		mGeoLocationManager = new GeoLocationManager(this);
 
 		// setup UI
 		setupToolbar();
@@ -95,16 +101,17 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		setupMainMenu();
 		setupViewPager();
 		if (mLastKnownLocation == null) {
-			loadCities();
+			loadCurrentPosition();
 		}
 
 	}
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
-		outState.putBoolean(BUNDLE_M_IS_POSITION_RECEIVED, mIsPositionReceived);
 		outState.putParcelable(BUNDLE_LAST_KNOWN_LOCATION, mLastKnownLocation);
 		outState.putSerializable(BUNDLE_LAST_SHOWN_CITY, mRequestedCity);
+		outState.putInt(BUNDLE_MENU_POSITION, mMenuAdapter.getLastSelectedPosition());
+		outState.putInt(BUNDLE_TAB_POSITION, mViewPager.getCurrentItem());
 
 		super.onSaveInstanceState(outState);
 	}
@@ -211,9 +218,6 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 	private void setupToolbar() {
 		mToolbar = (Toolbar) findViewById(R.id.activity_main_toolbar);
 		setSupportActionBar(mToolbar);
-		if (mRequestedCity != null) {
-			mToolbar.setTitle(mRequestedCity.getName());
-		}
 	}
 
 	private void setupDrawer() {
@@ -223,17 +227,24 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 	private void setupMainMenu() {
 		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, mToolbar, R.string.menu_open, R.string
 				.menu_close);
+		if (mRequestedCity != null) {
+			mToolbar.setTitle(mRequestedCity.getName());
+		}
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
 		mDrawerLayout.setDrawerShadow(R.drawable.general_vertical_shadow, GravityCompat.START);
 		mDrawerToggle.syncState();
 
 		mCityRecyclerView = (RecyclerView) findViewById(R.id.activity_main_navigation_view);
-		ViewGroup.LayoutParams lp = mCityRecyclerView.getLayoutParams();
-		lp.width = Math.min(WeatherUtility.getDisplayWidth(this) - getResources().getDimensionPixelSize(R.dimen
-				.navigation_drawer_rigth_margin), lp.width);
-		mCityRecyclerView.setLayoutParams(lp);
+		mMenuContainer = (ViewGroup) findViewById(R.id.activity_main_menu_container);
+
+		// navigation drawer width according to styleguides
+		ViewGroup.LayoutParams lp = mMenuContainer.getLayoutParams();
+		lp.width = Math.min(WeatherUtility.getDisplayWidth(this) - getResources().getDimensionPixelSize(R.dimen.navigation_drawer_rigth_margin), lp.width);
+		mMenuContainer.setLayoutParams(lp);
 
 		mMenuAdapter = new MenuAdapter(CityDatabase.getInstance(this).getCities(), this);
+		mMenuAdapter.setLastSelectedPosition(mMenuItemPosition);
+
 		mCityRecyclerView.setAdapter(mMenuAdapter);
 		RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
 		mCityRecyclerView.setLayoutManager(layoutManager);
@@ -244,6 +255,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		mPagerAdapter = new PagerAdapter(getSupportFragmentManager());
 		mViewPager = (ViewPager) findViewById(R.id.activity_main_main_container);
 		mViewPager.setAdapter(mPagerAdapter);
+		mViewPager.setCurrentItem(mTabPosition);
 
 		mTabLayout = (TabLayout) findViewById(R.id.activity_main_tab_layout);
 		mTabLayout.setupWithViewPager(mViewPager);
@@ -251,14 +263,14 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		mLoadingContainer = (ViewGroup) findViewById(R.id.activity_main_loading_container);
 	}
 
-	private void loadCities() {
-		Logcat.d(TAG, "loadCities");
+	private void loadCurrentPosition() {
+		Logcat.d(TAG, "loadCurrentPosition");
 
+		mIsRequestForCurrentPosition = true;
 		mLastKnownLocation = mGeoLocationManager.getLastKnownLocation();
 
 		if (mLastKnownLocation == null) {
 			mGeoLocationManager.registerListener(this);
-			mIsPositionReceived = false;
 			Logcat.d(TAG, "Current location is unknown");
 
 			mRequestedCity = CityDatabase.getInstance(getApplicationContext()).getCityWithCurrentPosition();
@@ -268,13 +280,13 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 				mLoadingContainer.setVisibility(View.VISIBLE);
 				ProgressBar progressBar = (ProgressBar) findViewById(R.id.activity_main_progress_bar);
 				progressBar.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary),
-						PorterDuff.Mode
-								.SRC_IN);
+																	  PorterDuff.Mode
+																			  .SRC_IN);
 			} else {
 				sendCityClickEvent();
 			}
 		} else {
-			// we have current location so load data about it
+			// we have current location so fetch data about it
 			prepareCityWithCurrentPosition();
 			sendCityClickEvent();
 		}
@@ -285,9 +297,9 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		CityModel receivedCity = cityLoadedEvent.getCityModel();
 		Logcat.e(TAG, "CityLoadedEvent: " + receivedCity);
 
-		if (GeoLocationManager.isLocationInArea(receivedCity.getLatitude(), receivedCity.getLongitude(), mCityWithCurrentPosition, new
-				float[3])) {
-			Logcat.d(TAG, "We just received current position, so change name");
+		if (mIsRequestForCurrentPosition) {
+			mIsRequestForCurrentPosition = false;
+			Logcat.d(TAG, "We just received current position, so save it to db as current position");
 			CityDatabase.getInstance(this).editCurrentCity(receivedCity);
 			mMenuAdapter.setCities(CityDatabase.getInstance(this).getCities());
 		}
@@ -307,13 +319,10 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 	}
 
 	private void prepareCityWithCurrentPosition() {
-		mCityWithCurrentPosition = new CityModel();
-		mCityWithCurrentPosition.setLatitude(mLastKnownLocation.getLatitude());
-		mCityWithCurrentPosition.setLongitude(mLastKnownLocation.getLongitude());
-		mCityWithCurrentPosition.setName(getString(R.string.menu_menu_current_position));
-		mCityWithCurrentPosition.setId(getString(R.string.prefs_cities_storage_current_city));
-
-		mRequestedCity = mCityWithCurrentPosition;
+		mRequestedCity = new CityModel();
+		mRequestedCity.setLatitude(mLastKnownLocation.getLatitude());
+		mRequestedCity.setLongitude(mLastKnownLocation.getLongitude());
+		mRequestedCity.setName(getString(R.string.menu_menu_current_position));
 
 		CityDatabase.getInstance(getApplicationContext()).editCurrentCity(mRequestedCity);
 	}
@@ -323,7 +332,6 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		Logcat.e(TAG, "Just received location, latitude: " + location
 				.getLatitude() + ", latitude: " + location.getLongitude());
 		mGeoLocationManager.unregisterListener();
-		mIsPositionReceived = true;
 
 		mLoadingContainer.setVisibility(View.GONE);
 
@@ -331,7 +339,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 
 		// if current location isn't in area which has already been requested, refresh data
 		if (!GeoLocationManager.isLocationInArea(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(),
-				mRequestedCity, new float[3])) {
+												 mRequestedCity, new float[3])) {
 			Logcat.e(TAG, "The new location is different from old one, so refresh");
 
 			prepareCityWithCurrentPosition();
@@ -342,31 +350,43 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 
 	@Override
 	public void onCityMenuClick(CityModel cityModel) {
+		mDrawerLayout.closeDrawer(Gravity.LEFT);
+
 		if (getString(R.string.prefs_cities_storage_current_city).equals(cityModel.getId())) {
+			// get current position and fetch new data from network
 			Logcat.e(TAG, "Obtain new current position");
 			mGeoLocationManager.reloadCurrentPosition();
-			loadCities();
+			mIsRequestForCurrentPosition = true;
+			loadCurrentPosition();
+		} else {
+			// fetch data from "db" or network
+			mRequestedCity = cityModel;
+			mToolbar.setTitle(mRequestedCity.getName());
+			sendCityClickEvent();
 		}
-		mRequestedCity = cityModel;
-		mDrawerLayout.closeDrawer(Gravity.LEFT);
-		sendCityClickEvent();
 	}
 
 	private void addCityToDabase() {
 		Logcat.d(TAG, "addCityToDatabase");
-		CityDatabase.getInstance(this).addCity(mRequestedCity);
+		boolean result = CityDatabase.getInstance(this).addCity(mRequestedCity);
+		if (result) {
+			Snackbar.make(mViewPager, getString(R.string.notification_city_added, mRequestedCity.getName()), Snackbar.LENGTH_LONG).show();
+		}
 		mMenuAdapter.setCities(CityDatabase.getInstance(this).getCities());
 	}
 
 	private void removeCityFromDatabase() {
 		Logcat.d(TAG, "removeCityFromDatabase");
-		CityDatabase.getInstance(this).removeCity(mRequestedCity);
+		boolean result = CityDatabase.getInstance(this).removeCity(mRequestedCity);
+		if (result) {
+			Snackbar.make(mViewPager, getString(R.string.notification_city_removed, mRequestedCity.getName()), Snackbar.LENGTH_LONG).show();
+		}
 		mMenuAdapter.setCities(CityDatabase.getInstance(this).getCities());
 	}
 
 	@Override
-	public void onPostCreate(Bundle savedInstanceState, PersistableBundle persistentState) {
-		super.onPostCreate(savedInstanceState, persistentState);
+	public void onPostCreate(Bundle savedInstanceState) {
+		super.onPostCreate(savedInstanceState);
 		mDrawerToggle.syncState();
 	}
 

@@ -18,6 +18,8 @@ public class CityModel implements Serializable, JsonRecord {
 	private double mLatitude;
 	private double mLongitude;
 
+	private boolean mIsSelected;
+
 	public CityModel() {
 	}
 
@@ -61,6 +63,14 @@ public class CityModel implements Serializable, JsonRecord {
 
 	public void setLongitude(double longitude) {
 		mLongitude = longitude;
+	}
+
+	public boolean isSelected() {
+		return mIsSelected;
+	}
+
+	public void setIsSelected(boolean isSelected) {
+		mIsSelected = isSelected;
 	}
 
 	@Override

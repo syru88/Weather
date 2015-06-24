@@ -64,6 +64,7 @@ public class CityDatabase {
 	}
 
 	public void editCurrentCity(CityModel cityModel) {
+		cityModel.setId(mContext.getString(R.string.prefs_cities_storage_current_city));
 		mDatabase.editEntry(mContext.getString(R.string.prefs_cities_storage_current_city), cityModel);
 	}
 

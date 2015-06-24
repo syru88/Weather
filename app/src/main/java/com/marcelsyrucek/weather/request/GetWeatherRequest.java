@@ -2,6 +2,7 @@ package com.marcelsyrucek.weather.request;
 
 import android.content.Context;
 
+import com.android.volley.DefaultRetryPolicy;
 import com.android.volley.Request;
 import com.android.volley.RequestQueue;
 import com.android.volley.Response;
@@ -41,6 +42,7 @@ public class GetWeatherRequest {
 		RequestQueue requestQueue = VolleyWrapper.getInstance(context).getRequestQueue();
 		GsonRequest<CurrentWeatherPojo> request = new GsonRequest<CurrentWeatherPojo>(Request.Method.GET, url, CurrentWeatherPojo
 				.class, listener, errorListener);
+		request.setRetryPolicy(new DefaultRetryPolicy(WeatherConfig.NETWORK_TIMEOUT_IN_MILLISECONDS, DefaultRetryPolicy.DEFAULT_MAX_RETRIES, DefaultRetryPolicy.DEFAULT_BACKOFF_MULT));
 
 		requestQueue.add(request);
 	}

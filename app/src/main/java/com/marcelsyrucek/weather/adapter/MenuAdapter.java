@@ -22,18 +22,32 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuItemViewHolder> {
 
 	public static final String TAG = MenuAdapter.class.getSimpleName();
 
-	private static final int NO_POSITION = -1;
+	public static final int NO_POSITION = -1;
 
 	private ArrayList<CityModel> mCities;
 	private MenuClickListener mMenuClickListener;
-	private int mLastSelectedItem = NO_POSITION;
+	private int mLastSelectedPosition = NO_POSITION;
 
 	public MenuAdapter(ArrayList<CityModel> cities, MenuClickListener menuClickListener) {
 		mCities = cities;
 		mMenuClickListener = menuClickListener;
 	}
 
+	public int getLastSelectedPosition() {
+		return mLastSelectedPosition;
+	}
+
+	public void setLastSelectedPosition(int position) {
+		if (position == NO_POSITION) {
+			return;
+		}
+
+		mLastSelectedPosition = position;
+		mCities.get(position).setIsSelected(true);
+	}
+
 	public void setCities(ArrayList<CityModel> cities) {
+		mLastSelectedPosition = NO_POSITION;
 		mCities = cities;
 		notifyDataSetChanged();
 	}
@@ -52,9 +66,7 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuItemViewHolder> {
 	public void onBindViewHolder(final MenuItemViewHolder menuItemViewHolder, final int i) {
 		final CityModel model = mCities.get(i);
 
-		if (mLastSelectedItem != NO_POSITION) {
-			menuItemViewHolder.itemView.setSelected(false);
-		}
+		menuItemViewHolder.itemView.setSelected(model.isSelected());
 
 		menuItemViewHolder.title.setText(model.getName());
 		if (i == 0) {
@@ -65,12 +77,15 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuItemViewHolder> {
 		menuItemViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Logcat.e(TAG, "last: " + mLastSelectedItem + ", cur: " + i);
-				if (mLastSelectedItem != NO_POSITION) {
-					notifyItemChanged(mLastSelectedItem);
+				Logcat.e(TAG, "last: " + mLastSelectedPosition + ", cur: " + i);
+				if (mLastSelectedPosition != NO_POSITION) {
+					mCities.get(mLastSelectedPosition).setIsSelected(false);
+					notifyItemChanged(mLastSelectedPosition);
 				}
+
 				menuItemViewHolder.itemView.setSelected(true);
-				mLastSelectedItem = i;
+				mCities.get(i).setIsSelected(true);
+				mLastSelectedPosition = i;
 				mMenuClickListener.onCityMenuClick(model);
 			}
 		});
