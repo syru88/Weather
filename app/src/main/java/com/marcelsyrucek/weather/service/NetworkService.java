@@ -71,6 +71,10 @@ public class NetworkService extends Service {
 			return START_NOT_STICKY;
 		}
 
+		if (requestedCity != null) {
+			Logcat.e(TAG, "Call from Activity!!!");
+		}
+
 		if (requestedCity == null) {
 			Logcat.d(TAG, "Called from fragment for refresh or first connection");
 			requestedCity = mShownCity;

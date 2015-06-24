@@ -2,7 +2,6 @@ package com.marcelsyrucek.weather.request;
 
 import android.content.Context;
 
-import com.marcelsyrucek.weather.R;
 import com.marcelsyrucek.weather.database.model.CityModel;
 
 /**
@@ -19,7 +18,7 @@ public class UtilityRequest {
 			throw new IllegalArgumentException("The city object is null which shouldn't happen!!!");
 		}
 
-		if (city.getId() != null && !city.isCurrent()) {
+		if (city.getId() != null && !city.isCurrentPosition()) {
 			searchCondition.append("id=");
 			searchCondition.append(city.getId());
 		} else if (city.getLatitude() != 0 || city.getLongitude() != 0) {

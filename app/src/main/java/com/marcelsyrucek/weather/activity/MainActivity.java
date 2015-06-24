@@ -168,7 +168,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 
 		MenuItem menuItem = menu.findItem(R.id.menu_edit_city);
 
-		// change Add or Remove
+		// Add or Remove
 		if (CityDatabase.getInstance(this).isCityInDatabase(mRequestedCity)) {
 			menuItem.setTitle(R.string.menu_action_remove_this_city);
 		} else {
@@ -314,10 +314,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		mGeoLocationManager.unregisterListener();
 		mIsPositionReceived = true;
 
-		if (mRequestedCity == null) {
-			Logcat.e(TAG, "First start of application and we just received our current position");
-			mLoadingContainer.setVisibility(View.GONE);
-		}
+		mLoadingContainer.setVisibility(View.GONE);
 
 		mLastKnownLocation = location;
 
@@ -334,6 +331,11 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 
 	@Override
 	public void onCityMenuClick(CityModel cityModel) {
+		if (cityModel.isCurrentPosition()) {
+			Logcat.e(TAG, "Obtain new current position");
+			mGeoLocationManager.reloadCurrentPosition();
+			loadCities();
+		}
 		mRequestedCity = cityModel;
 		mDrawerLayout.closeDrawer(Gravity.LEFT);
 		mToolbar.setTitle(mRequestedCity.getName());
