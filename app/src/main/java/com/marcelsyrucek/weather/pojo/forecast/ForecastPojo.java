@@ -10,8 +10,6 @@ import java.util.Map;
 
 public class ForecastPojo extends WebErrorData {
 
-    private String cod;
-    private double message;
     private City city;
     private int cnt;
     private java.util.List<com.marcelsyrucek.weather.pojo.forecast.List> list = new ArrayList<com.marcelsyrucek.weather.pojo.forecast.List>();
@@ -22,7 +20,7 @@ public class ForecastPojo extends WebErrorData {
 
         if (city != null && city.getCoord() != null) {
             cityModel.setId(city.getId()+"");
-            cityModel.setName(city.getName());
+            cityModel.setName(getCityWithCountry());
             cityModel.setLatitude(city.getCoord().getLat());
             cityModel.setLongitude(city.getCoord().getLon());
         }
@@ -30,40 +28,12 @@ public class ForecastPojo extends WebErrorData {
         return cityModel;
     }
 
-    /**
-     * 
-     * @return
-     *     The cod
-     */
-    public String getCod() {
-        return cod;
-    }
-
-    /**
-     * 
-     * @param cod
-     *     The cod
-     */
-    public void setCod(String cod) {
-        this.cod = cod;
-    }
-
-    /**
-     * 
-     * @return
-     *     The message
-     */
-    public double getMessage() {
-        return message;
-    }
-
-    /**
-     * 
-     * @param message
-     *     The message
-     */
-    public void setMessage(int message) {
-        this.message = message;
+    public String getCityWithCountry() {
+        if (city != null && city.getCountry() != null) {
+            return city.getName() + ", " + city.getCountry();
+        } else {
+            return city.getName();
+        }
     }
 
     /**

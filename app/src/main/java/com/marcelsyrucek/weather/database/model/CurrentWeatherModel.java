@@ -85,8 +85,8 @@ public class CurrentWeatherModel extends AgeAndExceptionData implements JsonReco
 		mIconUrl = iconUrl;
 	}
 
-	public double getTemperature(int unit) {
-		return WeatherUtility.getTemperature(unit, mTemperature);
+	public double getTemperature() {
+		return mTemperature;
 	}
 
 	public void setTemperature(double temperature) {
@@ -117,8 +117,8 @@ public class CurrentWeatherModel extends AgeAndExceptionData implements JsonReco
 		mPressure = pressure;
 	}
 
-	public double getWindSpeed(int unit) {
-		return WeatherUtility.getWindSpeed(unit, mWindSpeed);
+	public double getWindSpeed() {
+		return mWindSpeed;
 	}
 
 	public void setWindSpeed(double windSpeed) {

@@ -29,7 +29,7 @@ public class GetForecastRequest {
 		url.append(UtilityRequest.getSearchCondition(city, context));
 		url.append(WeatherConfig.API_APPID);
 
-
+		getForecastWeather(url.toString(), context, listener, errorListener);
 	}
 
 	private static void getForecastWeather(String url, Context context, Response.Listener<ForecastPojo> listener,

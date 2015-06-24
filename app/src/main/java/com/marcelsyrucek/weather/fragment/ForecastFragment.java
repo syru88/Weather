@@ -2,9 +2,13 @@ package com.marcelsyrucek.weather.fragment;
 
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,9 +16,14 @@ import android.view.ViewGroup;
 
 import com.marcelsyrucek.weather.R;
 import com.marcelsyrucek.weather.WeatherApplication;
+import com.marcelsyrucek.weather.adapter.ForecastAdapter;
+import com.marcelsyrucek.weather.database.model.ForecastWeatherModelList;
+import com.marcelsyrucek.weather.event.ForecastLoadedEvent;
 import com.marcelsyrucek.weather.service.NetworkService;
 import com.marcelsyrucek.weather.utility.Logcat;
+import com.marcelsyrucek.weather.utility.WeatherUtility;
 import com.squareup.otto.Bus;
+import com.squareup.otto.Subscribe;
 
 
 /**
@@ -29,6 +38,7 @@ public class ForecastFragment extends Fragment {
 	private RecyclerView mRecyclerView;
 
 	private int mTempPreference;
+	private ForecastAdapter mAdapter;
 
 	private Bus mBus = WeatherApplication.bus;
 
@@ -44,7 +54,6 @@ public class ForecastFragment extends Fragment {
 	@Override
 	public void onStart() {
 		super.onStart();
-		Logcat.d(TAG, "onStart");
 		mBus.register(this);
 		startNetworkService();
 	}
@@ -58,8 +67,16 @@ public class ForecastFragment extends Fragment {
 	@Override
 	public void onStop() {
 		super.onStop();
-		Logcat.d(TAG, "onStop");
 		mBus.unregister(this);
+	}
+
+	@Override
+	public void setUserVisibleHint(boolean isVisibleToUser) {
+		super.setUserVisibleHint(isVisibleToUser);
+
+		if (isVisibleToUser) {
+			startNetworkService();
+		}
 	}
 
 	@Override
@@ -77,9 +94,44 @@ public class ForecastFragment extends Fragment {
 				startNetworkService();
 			}
 		});
+		mAdapter = new ForecastAdapter(getResources().getString(R.string.weather_temp_degree));
+		LinearLayoutManager layoutManager = new LinearLayoutManager(container.getContext(), LinearLayoutManager.VERTICAL, false);
+
 		mRecyclerView = (RecyclerView) mRoot.findViewById(R.id.fragment_forecast_recycler_view);
+		mRecyclerView.setLayoutManager(layoutManager);
+		mRecyclerView.setAdapter(mAdapter);
 
 		return mRoot;
+	}
+
+	@Subscribe
+	public void subscibeOnForecastLoadedEvent(ForecastLoadedEvent event) {
+		Logcat.e(TAG, "ForecastLoadedEvent: " + event.getForecastWeatherModelList());
+
+		if (mSwipeRefreshLayout != null) {
+			mSwipeRefreshLayout.setRefreshing(false);
+		}
+
+		handleErrors(event.getForecastWeatherModelList());
+		loadData(event.getForecastWeatherModelList());
+	}
+
+	private void loadUnitFromPreferences() {
+
+		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
+		mTempPreference = Integer.parseInt(preferences.getString(getString(R.string.prefs_key_unit_of_temperature),
+				getString(R.string.prefs_default_value_unit_of_temperature)));
+	}
+
+	private void loadData(ForecastWeatherModelList forecastWeatherModelList) {
+		loadUnitFromPreferences();
+		mAdapter.setDays(forecastWeatherModelList.getDays(), mTempPreference);
+	}
+
+	private void handleErrors(ForecastWeatherModelList forecastWeatherModelList) {
+		if (forecastWeatherModelList.isError()) {
+			Snackbar.make(mRoot, forecastWeatherModelList.getErrorText(), Snackbar.LENGTH_LONG).show();
+		}
 	}
 
 	@Override

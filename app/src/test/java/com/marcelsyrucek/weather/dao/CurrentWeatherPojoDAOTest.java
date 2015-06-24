@@ -31,8 +31,8 @@ public class CurrentWeatherPojoDAOTest {
 	public void testTemperature() throws Exception {
 		mDAO.setTemperature(0);
 
-		assertEquals(-459.7, mDAO.getTemperature(WeatherUtility.TEMP_FAHRENHEIT), 0);
-		assertEquals(-273.1, mDAO.getTemperature(WeatherUtility.TEMP_CELSIUS), 0);
+		assertEquals(-459.7, WeatherUtility.getTemperature(WeatherUtility.TEMP_FAHRENHEIT, 0), 0);
+		assertEquals(-273.1, WeatherUtility.getTemperature(WeatherUtility.TEMP_CELSIUS, 0), 0);
 
 	}
 
@@ -40,9 +40,9 @@ public class CurrentWeatherPojoDAOTest {
 	public void testWindSpeed() throws Exception {
 		mDAO.setWindSpeed(10);
 
-		assertEquals(22.4, mDAO.getWindSpeed(WeatherUtility.LENGTH_MILE), 0);
-		assertEquals(36, mDAO.getWindSpeed(WeatherUtility.LENGTH_KILOMETER), 0);
-		assertEquals(10, mDAO.getWindSpeed(WeatherUtility.LENGTH_METER), 0);
+		assertEquals(22.4, WeatherUtility.getWindSpeed(WeatherUtility.LENGTH_MILE, 0), 0);
+		assertEquals(36, WeatherUtility.getWindSpeed(WeatherUtility.LENGTH_KILOMETER, 0), 0);
+		assertEquals(10, WeatherUtility.getWindSpeed(WeatherUtility.LENGTH_METER, 0), 0);
 	}
 
 	@Test

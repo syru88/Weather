@@ -14,13 +14,13 @@ import java.util.ArrayList;
 /**
  * Created by marcel on 19.6.2015.
  */
-public class MenuItemAdapter extends RecyclerView.Adapter<MenuItemViewHolder> {
+public class MenuAdapter extends RecyclerView.Adapter<MenuItemViewHolder> {
 
 	public interface MenuClickListener {
 		void onCityMenuClick(CityModel cityModel);
 	}
 
-	public static final String TAG = MenuItemAdapter.class.getSimpleName();
+	public static final String TAG = MenuAdapter.class.getSimpleName();
 
 	private static final int NO_POSITION = -1;
 
@@ -28,7 +28,7 @@ public class MenuItemAdapter extends RecyclerView.Adapter<MenuItemViewHolder> {
 	private MenuClickListener mMenuClickListener;
 	private int mLastSelectedItem = NO_POSITION;
 
-	public MenuItemAdapter(ArrayList<CityModel> cities, MenuClickListener menuClickListener) {
+	public MenuAdapter(ArrayList<CityModel> cities, MenuClickListener menuClickListener) {
 		mCities = cities;
 		mMenuClickListener = menuClickListener;
 	}
@@ -71,6 +71,10 @@ public class MenuItemAdapter extends RecyclerView.Adapter<MenuItemViewHolder> {
 					notifyItemChanged(mLastSelectedItem);
 				}
 				mLastSelectedItem = i;
+
+				if (i == 0) {
+					model.setIsCurrent(true);
+				}
 				mMenuClickListener.onCityMenuClick(model);
 			}
 		});

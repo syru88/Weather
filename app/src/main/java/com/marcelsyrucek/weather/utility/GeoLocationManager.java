@@ -84,7 +84,6 @@ public class GeoLocationManager implements GoogleApiClient.ConnectionCallbacks, 
 	public void registerListener(GeoLocationListener geoLocationListener) {
 		if (mGeoLocationListener == geoLocationListener) {
 			// TODO Marcel: this kind of working with listeners isn't the best one. Rewrite!!!
-			Logcat.d(TAG, "!=! not necessary to register again");
 			return;
 		}
 		Logcat.d(TAG, "registerListener");
@@ -130,13 +129,13 @@ public class GeoLocationManager implements GoogleApiClient.ConnectionCallbacks, 
 		Logcat.d(TAG, "getPlayLocation");
 		Location lastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 		if (lastLocation != null) {
-			Logcat.d(TAG, "WE HAVE NON NULL LAST LOCATION");
+			Logcat.d(TAG, "We have last known location");
 			mLocation = lastLocation;
 			if (mGeoLocationListener != null) {
 				mGeoLocationListener.lastKnownLocation(mLocation);
 			}
 		} else {
-			Logcat.d(TAG, "NO LAST LOCATION, RUN LOCATION REQUEST");
+			Logcat.d(TAG, "No last location, run request.");
 			LocationRequest locationRequest = new LocationRequest();
 			locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 			locationRequest.setNumUpdates(1);
@@ -191,7 +190,7 @@ public class GeoLocationManager implements GoogleApiClient.ConnectionCallbacks, 
 
 	@Override
 	public void onLocationChanged(Location location) {
-		Logcat.e(TAG, "onLocationChanged");
+		Logcat.d(TAG, "onLocationChanged");
 		if (mAndroidManager != null) {
 			mAndroidManager.removeUpdates(this);
 		}

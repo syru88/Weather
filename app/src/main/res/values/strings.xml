@@ -11,6 +11,7 @@
     <string name="network_error_parse">Parsing error</string>
     <string name="network_error_general">General network error</string>
     <string name="network_error_invalid_request">Invalid request</string>
+    <string name="network_error_server">Server error: </string>
 
     <!-- Weather information -->
     <string name="weather_temp_degree">°</string>
@@ -22,6 +23,9 @@
     <string name="weather_wind_speed_m_s">m/s</string>
     <string name="weather_wind_speed_km_h">km/h</string>
     <string name="weather_wind_speed_mph">mph</string>
+
+    <!-- Forecast information -->
+    <string name="forecast_day_preposition">on</string>
 
     <!-- Menus -->
     <string name="menu_today">Today</string>

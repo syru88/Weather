@@ -9,6 +9,7 @@ import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.GravityCompat;
 import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
@@ -27,7 +28,7 @@ import android.widget.Toast;
 
 import com.marcelsyrucek.weather.R;
 import com.marcelsyrucek.weather.WeatherApplication;
-import com.marcelsyrucek.weather.adapter.MenuItemAdapter;
+import com.marcelsyrucek.weather.adapter.MenuAdapter;
 import com.marcelsyrucek.weather.database.CityDatabase;
 import com.marcelsyrucek.weather.database.model.CityModel;
 import com.marcelsyrucek.weather.dialog.AboutDialogFragment;
@@ -42,7 +43,7 @@ import com.marcelsyrucek.weather.utility.WeatherUtility;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
-public class MainActivity extends AppCompatActivity implements GeoLocationListener, MenuItemAdapter.MenuClickListener {
+public class MainActivity extends AppCompatActivity implements GeoLocationListener, MenuAdapter.MenuClickListener {
 
 	public static final String TAG = MainActivity.class.getSimpleName();
 
@@ -66,13 +67,13 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 	private boolean mIsPositionReceived = true;
 
 	private Bus mBus = WeatherApplication.bus;
-	private MenuItemAdapter mMenuItemAdapter;
+	private MenuAdapter mMenuAdapter;
 	private MenuItem mSearchMenuItem;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Logcat.d(TAG, "onCreate");
+		Logcat.e(TAG, "onCreate");
 		setContentView(R.layout.activity_main);
 
 		if (savedInstanceState != null) {
@@ -113,7 +114,6 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 	@Override
 	protected void onResume() {
 		super.onResume();
-		Logcat.e(TAG, "onResume");
 
 		if (mIsPositionReceived == false) {
 			mGeoLocationManager.registerListener(this);
@@ -148,7 +148,6 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
 			@Override
 			public boolean onQueryTextSubmit(String query) {
-				Logcat.d(TAG, "Search submit: " + query);
 				mRequestedCity = new CityModel(query);
 				startNetworkService();
 				mSearchMenuItem.collapseActionView();
@@ -181,7 +180,6 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		Logcat.d(TAG, "onOptionsItemSelected: " + item.getTitle());
 		mDrawerLayout.closeDrawer(Gravity.LEFT);
 		switch (item.getItemId()) {
 			case R.id.menu_edit_city:
@@ -215,6 +213,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, mToolbar, R.string.menu_open, R.string
 				.menu_close);
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
+		mDrawerLayout.setDrawerShadow(R.drawable.general_vertical_shadow, GravityCompat.START);
 		mDrawerToggle.syncState();
 
 		mCityRecyclerView = (RecyclerView) findViewById(R.id.activity_main_navigation_view);
@@ -223,8 +222,8 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 				.navigation_drawer_rigth_margin), lp.width);
 		mCityRecyclerView.setLayoutParams(lp);
 
-		mMenuItemAdapter = new MenuItemAdapter(CityDatabase.getInstance(this).getCities(), this);
-		mCityRecyclerView.setAdapter(mMenuItemAdapter);
+		mMenuAdapter = new MenuAdapter(CityDatabase.getInstance(this).getCities(), this);
+		mCityRecyclerView.setAdapter(mMenuAdapter);
 		RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
 		mCityRecyclerView.setLayoutManager(layoutManager);
 	}
@@ -232,39 +231,18 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 	@Subscribe
 	public void subscribeOnCityLoadedEvent(CityLoadedEvent cityLoadedEvent) {
 		CityModel receivedCity = cityLoadedEvent.getCityModel();
-		Logcat.e(TAG, "subscribeOnCityLoadedEvent: " + receivedCity);
+		Logcat.e(TAG, "CityLoadedEvent: " + receivedCity);
 
 		if (GeoLocationManager.isLocationInArea(receivedCity.getLatitude(), receivedCity.getLongitude(), mCityWithCurrentPosition, new
 				float[3])) {
-			Logcat.e(TAG, "We just recieved current position, so change name");
-			CityDatabase.getInstance(this).editCurrentCity(cityLoadedEvent.getCityModel());
-			mMenuItemAdapter.setCities(CityDatabase.getInstance(this).getCities());
+			Logcat.d(TAG, "We just received current position, so change name");
+			CityDatabase.getInstance(this).editCurrentCity(receivedCity);
+			mMenuAdapter.setCities(CityDatabase.getInstance(this).getCities());
 		}
 
 		mRequestedCity = receivedCity;
 		mToolbar.setTitle(mRequestedCity.getName());
 
-	}
-
-	@Override
-	public void onCityMenuClick(CityModel cityModel) {
-		Logcat.d(TAG, "onCityMenuClick: " + cityModel);
-		mRequestedCity = cityModel;
-		mDrawerLayout.closeDrawer(Gravity.LEFT);
-		mToolbar.setTitle(mRequestedCity.getName());
-		startNetworkService();
-	}
-
-	private void addCityToDabase() {
-		Logcat.d(TAG, "addCityToDatabase");
-		CityDatabase.getInstance(this).addCity(mRequestedCity);
-		mMenuItemAdapter.setCities(CityDatabase.getInstance(this).getCities());
-	}
-
-	private void removeCityFromDatabase() {
-		Logcat.d(TAG, "removeCityFromDatabase");
-		CityDatabase.getInstance(this).removeCity(mRequestedCity);
-		mMenuItemAdapter.setCities(CityDatabase.getInstance(this).getCities());
 	}
 
 	private void setupViewPager() {
@@ -306,7 +284,6 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 			}
 		} else {
 			// we have current location so load data about it
-
 			prepareCityWithCurrentPosition();
 			startNetworkService();
 		}
@@ -317,6 +294,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		mCityWithCurrentPosition.setLatitude(mLastKnownLocation.getLatitude());
 		mCityWithCurrentPosition.setLongitude(mLastKnownLocation.getLongitude());
 		mCityWithCurrentPosition.setName(getString(R.string.menu_menu_current_position));
+		mCityWithCurrentPosition.setIsCurrent(true);
 
 		mRequestedCity = mCityWithCurrentPosition;
 
@@ -331,8 +309,8 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 
 	@Override
 	public void lastKnownLocation(Location location) {
-		Logcat.e(TAG, "Just received location, longitude: " + location.getLongitude() + ", latitude: " + location
-				.getLatitude());
+		Logcat.e(TAG, "Just received location, latitude: " + location
+				.getLatitude() + ", latitude: " + location.getLongitude());
 		mGeoLocationManager.unregisterListener();
 		mIsPositionReceived = true;
 
@@ -352,6 +330,26 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 			startNetworkService();
 		}
 
+	}
+
+	@Override
+	public void onCityMenuClick(CityModel cityModel) {
+		mRequestedCity = cityModel;
+		mDrawerLayout.closeDrawer(Gravity.LEFT);
+		mToolbar.setTitle(mRequestedCity.getName());
+		startNetworkService();
+	}
+
+	private void addCityToDabase() {
+		Logcat.d(TAG, "addCityToDatabase");
+		CityDatabase.getInstance(this).addCity(mRequestedCity);
+		mMenuAdapter.setCities(CityDatabase.getInstance(this).getCities());
+	}
+
+	private void removeCityFromDatabase() {
+		Logcat.d(TAG, "removeCityFromDatabase");
+		CityDatabase.getInstance(this).removeCity(mRequestedCity);
+		mMenuAdapter.setCities(CityDatabase.getInstance(this).getCities());
 	}
 
 	@Override

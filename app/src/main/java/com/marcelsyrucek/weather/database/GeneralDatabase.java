@@ -127,11 +127,10 @@ public class GeneralDatabase<T extends JsonRecord> {
 
 		for (Map.Entry<String, ?> entry : allJsonEntries.entrySet()) {
 			json = mSharedPreferences.getString(entry.getKey(), "");
-			Logcat.e(TAG, "key: " + entry.getKey() + ", json: " + json);
+			Logcat.d(TAG, "key: " + entry.getKey() + ", json: " + json);
 			entries.add(gson.fromJson(json, this.mTypeClass));
 		}
 
-		Logcat.e(TAG, "end parsing size: " + entries.size());
 
 		return entries;
 	}

@@ -18,6 +18,8 @@ public class CityModel implements Serializable, JsonRecord {
 	private double mLatitude;
 	private double mLongitude;
 
+	private boolean mIsCurrent;
+
 	public CityModel() {
 	}
 
@@ -63,9 +65,18 @@ public class CityModel implements Serializable, JsonRecord {
 		mLongitude = longitude;
 	}
 
+	public boolean isCurrent() {
+		return mIsCurrent;
+	}
+
+	public void setIsCurrent(boolean isCurrent) {
+		mIsCurrent = isCurrent;
+	}
+
 	@Override
 	public String toString() {
-		return "City: " + mName + ", id: " + mId + ", lat: " + mLatitude + ", long: " + mLongitude;
+		return "IsCur: " + mIsCurrent + "City: " + mName + ", id: " + mId + ", lat: " + mLatitude + ", long: " +
+				mLongitude;
 	}
 
 	@Override

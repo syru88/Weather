@@ -1,6 +1,7 @@
 package com.marcelsyrucek.weather.database.model;
 
 import com.marcelsyrucek.weather.database.JsonRecord;
+import com.marcelsyrucek.weather.utility.Logcat;
 
 /**
  * Created by marcel on 23.6.2015.

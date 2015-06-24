@@ -55,7 +55,6 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 	@Override
 	public void onStart() {
 		super.onStart();
-		Logcat.d(TAG, "onStart");
 		mBus.register(this);
 		startNetworkService();
 	}
@@ -68,8 +67,16 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 	@Override
 	public void onStop() {
 		super.onStop();
-		Logcat.d(TAG, "onStop");
 		mBus.unregister(this);
+	}
+
+	@Override
+	public void setUserVisibleHint(boolean isVisibleToUser) {
+		super.setUserVisibleHint(isVisibleToUser);
+
+		if (isVisibleToUser) {
+			startNetworkService();
+		}
 	}
 
 	@Override
@@ -112,13 +119,13 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 		Logcat.d(TAG, "onDestroyView");
 	}
 
-	@Subscribe
 	/**
 	 * Subscribe this method for listening on {@link CurrentWeatherLoadedEvent} which happens when we have old location from
 	 * database but the new location is different. So user doesn't wait for position or network neither.
 	 */
+	@Subscribe
 	public void subscribeOnCurrentWeatherLoadedEvent(CurrentWeatherLoadedEvent event) {
-		Logcat.e(TAG, "subscribeOnCurrentWeatherLoadedEvent: " + event.getCurrentWeatherModel());
+		Logcat.e(TAG, "CurrentWeatherLoadedEvent: " + event.getCurrentWeatherModel());
 
 		if (mSwipeRefreshLayout != null) {
 			mSwipeRefreshLayout.setRefreshing(false);
@@ -130,13 +137,13 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 	}
 
 	private void loadUnitFromPreferences() {
-		Logcat.d(TAG, "loadUnitFromPreferences");
 
 		SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getActivity());
-		mLengthPreference = Integer.parseInt(preferences.getString(getString(R.string.prefs_key_unit_of_length)
-				, "0"));
+		mLengthPreference = Integer.parseInt(preferences.getString(getString(R.string.prefs_key_unit_of_length), getString(R
+				.string
+				.prefs_default_value_unit_of_length)));
 		mTempPreference = Integer.parseInt(preferences.getString(getString(R.string.prefs_key_unit_of_temperature),
-				"0"));
+				getString(R.string.prefs_default_value_unit_of_temperature)));
 	}
 
 	private void loadData(CurrentWeatherModel currentWeatherModel) {
@@ -146,7 +153,7 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 
 		mCity.setText(currentWeatherModel.getCity());
 		mDescription.setText(currentWeatherModel.getDescription());
-		mTemperature.setText(currentWeatherModel.getTemperature(mTempPreference) + getString(R.string.weather_temp_degree));
+		mTemperature.setText(WeatherUtility.getTemperature(mTempPreference, currentWeatherModel.getTemperature()) + getString(R.string.weather_temp_degree));
 
 		// TODO Marcel: handle images
 //
@@ -154,7 +161,7 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 		mPrecipitation.setText(currentWeatherModel.getPrecipitation() + " " + getString(R.string
 				.weather_precipitation_unit));
 		mPressure.setText(currentWeatherModel.getPressure() + " " + getString(R.string.weather_preasure_unit));
-		mWind.setText(currentWeatherModel.getWindSpeed(mLengthPreference) + " " + mWindSpeedUnit);
+		mWind.setText(WeatherUtility.getWindSpeed(mLengthPreference, currentWeatherModel.getWindSpeed()) + " " + mWindSpeedUnit);
 		mDirection.setText(currentWeatherModel.getWindDirection());
 
 	}

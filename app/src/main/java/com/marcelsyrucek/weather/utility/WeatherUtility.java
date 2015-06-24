@@ -9,6 +9,9 @@ import com.marcelsyrucek.weather.R;
 
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Locale;
 
 /**
  * Created by marcel on 18.6.2015.
@@ -84,6 +87,15 @@ public class WeatherUtility {
 		return directions[(int) Math.round(((degrees % 360) / 45)) % 8];
 	}
 
+	public static String capitalizeFirstChar(String sentence) {
+		if (sentence == null) {
+			return null;
+		}
+
+		char first = Character.toUpperCase(sentence.charAt(0));
+		return first + sentence.substring(1);
+	}
+
 	public static String capitalizeFirstLetters(String sentence) {
 		if (sentence == null) {
 			return null;
@@ -99,6 +111,18 @@ public class WeatherUtility {
 		}
 
 		return buffer.toString().trim();
+	}
+
+	public static String getDate(long milliSeconds)
+	{
+		// Create a DateFormatter object for displaying date in specified format.
+		SimpleDateFormat formatter = new SimpleDateFormat("EEEE", Locale.US);
+
+		// Create a calendar object that will convert the date and time value in milliseconds to date.
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTimeInMillis(milliSeconds * 1000L);
+
+		return formatter.format(calendar.getTime());
 	}
 
 	// this function round negative number e.g. -273.15 to -273.1

@@ -7,23 +7,7 @@ import com.google.gson.annotations.Expose;
  */
 public class WebErrorData {
 	@Expose
-	private String errorMessage;
-	@Expose
 	private String cod;
-
-	/**
-	 * @return The errorMessage
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
-	 * @param errorMessage The errorMessage
-	 */
-	public void setErrorMessage(String errorMessage) {
-		this.errorMessage = errorMessage;
-	}
 
 	/**
 	 * @return The cod

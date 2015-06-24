@@ -7,7 +7,7 @@ import java.util.Map;
 
 public class List {
 
-    private int dt;
+    private long dt;
     private Temp temp;
     private double pressure;
     private double humidity;
@@ -23,7 +23,7 @@ public class List {
      * @return
      *     The dt
      */
-    public double getDt() {
+    public long getDt() {
         return dt;
     }
 
@@ -32,7 +32,7 @@ public class List {
      * @param dt
      *     The dt
      */
-    public void setDt(int dt) {
+    public void setDt(long dt) {
         this.dt = dt;
     }
 

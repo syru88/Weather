@@ -19,16 +19,16 @@ public class UtilityRequest {
 			throw new IllegalArgumentException("The city object is null which shouldn't happen!!!");
 		}
 
-		if (city.getId() != null && context.getString(R.string.menu_menu_current_position).equals(city.getId()) == false) {
+		if (city.getId() != null && !city.isCurrent()) {
 			searchCondition.append("id=");
 			searchCondition.append(city.getId());
 		} else if (city.getLatitude() != 0 || city.getLongitude() != 0) {
-			searchCondition.append("?lat=");
+			searchCondition.append("lat=");
 			searchCondition.append(city.getLatitude());
 			searchCondition.append("&lon=");
 			searchCondition.append(city.getLongitude());
 		} else {
-			searchCondition.append("?q=");
+			searchCondition.append("q=");
 			searchCondition.append(city.getName());
 		}
 

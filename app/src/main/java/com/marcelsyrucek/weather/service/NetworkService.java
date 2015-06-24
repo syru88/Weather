@@ -66,6 +66,16 @@ public class NetworkService extends Service {
 
 		Logcat.e(TAG, "onStartCommand: " + requestedCity + ", request: " + mRequestValue + ", shown: " + mShownCity);
 
+		if (requestedCity == null && mShownCity == null) {
+			Logcat.e(TAG, "Both cities null, so go away and don't contact server");
+			return START_NOT_STICKY;
+		}
+
+		if (requestedCity == null) {
+			Logcat.d(TAG, "Called from fragment for refresh or first connection");
+			requestedCity = mShownCity;
+		}
+
 		// which request was requested
 		switch (mRequestValue) {
 			case REQUEST_VALUE_CURRENT_WEATHER:
@@ -83,8 +93,9 @@ public class NetworkService extends Service {
 	private void getCurrentWeather(CityModel requestedCity) {
 		Logcat.d(TAG, "getCurrentWeather");
 
-		// we already have data, the location is null (we call it from fragment) or same (activity)
-		if (mCurrentWeather != null && (requestedCity == null || requestedCity.equals(mShownCity))) {
+		// we already have data for this location
+		if (mCurrentWeather != null && requestedCity.equals(mShownCity)) {
+			Logcat.d(TAG, "Not load, send data");
 			produceCurrentWeatherLoadedEvent();
 			return;
 		}
@@ -94,14 +105,19 @@ public class NetworkService extends Service {
 			public void onResponse(CurrentWeatherPojo response) {
 				// check server invalid data
 				Logcat.e(TAG, "onResponse: " + response.getName());
-				if (response.getErrorMessage() != null) {
-					Logcat.e(TAG, "Error in server data: " + response.getErrorMessage());
-					// TODO Marcel: error state on server side, e.g. city not found
+				if (!"200".equals(response.getCod())) {
+					Logcat.e(TAG, "Error in server data: " + response.getCod());
+					if (mCurrentWeather == null) {
+						mCurrentWeather = new CurrentWeatherModel();
+					}
+					mCurrentWeather.setIsError(true);
+					mCurrentWeather.setErrorText(getString(R.string.network_error_server) + response.getCod());
+				} else {
+					mCurrentWeather = new CurrentWeatherModel(response);
+					mShownCity = response.getCityModel();
+					produceCityLoadedEvent();
 				}
-				mCurrentWeather = new CurrentWeatherModel(response);
-				mShownCity = response.getCityModel();
 				produceCurrentWeatherLoadedEvent();
-				produceCityLoadedEvent();
 
 			}
 		}, new Response.ErrorListener() {
@@ -123,7 +139,9 @@ public class NetworkService extends Service {
 	private void getForecastWeather(final CityModel requestedCity) {
 		Logcat.d(TAG, "getForecastWeather");
 
-		if (mForecast != null && (requestedCity == null || requestedCity.equals(mShownCity))) {
+		// we already have data for this location
+		if (mForecast != null && requestedCity.equals(mShownCity)) {
+			Logcat.d(TAG, "Not load, send data");
 			produceForecastLoadedEvent();
 			return;
 		}
@@ -132,14 +150,20 @@ public class NetworkService extends Service {
 			@Override
 			public void onResponse(ForecastPojo response) {
 				Logcat.d(TAG, "onResponse: " + response.getCity());
-				if (response.getErrorMessage() != null) {
-					Logcat.e(TAG, "Error in server data: " + response.getErrorMessage());
-					// TODO Marcel: error state on server side, e.g. city not found
+				if (!"200".equals(response.getCod())) {
+					Logcat.e(TAG, "Error in server data: " + response.getCod());
+					if (mForecast == null) {
+						mForecast = new ForecastWeatherModelList();
+					}
+					mForecast.setErrorText(getString(R.string.network_error_server) + response.getCod());
+					mForecast.setIsError(true);
+				} else {
+					mForecast = new ForecastWeatherModelList(response, " " + getString(R.string.forecast_day_preposition)
+							+ " ");
+					mShownCity = response.getCityModel();
+					produceCityLoadedEvent();
 				}
-				mForecast = new ForecastWeatherModelList(response);
-				mShownCity = response.getCityModel();
 				produceForecastLoadedEvent();
-				produceCityLoadedEvent();
 
 			}
 		}, new Response.ErrorListener() {

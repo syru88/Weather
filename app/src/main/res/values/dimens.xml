@@ -6,6 +6,9 @@
     <dimen name="general_half_padding">8dp</dimen>
     <dimen name="general_icon_18_dp">18dp</dimen>
     <dimen name="general_title_small_14_sp">14sp</dimen>
+    <dimen name="general_shadow_size">4dp</dimen>
+    <dimen name="general_shadow_double_size">8dp</dimen>
+    <dimen name="general_divider_size">2dp</dimen>
 
     <!-- menu item & toolbar -->
     <dimen name="navigation_menu_left_margin">36dp</dimen>

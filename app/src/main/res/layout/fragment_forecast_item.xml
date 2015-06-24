@@ -32,5 +32,11 @@
         android:layout_toRightOf="@id/fragment_forecast_item_icon"
         android:textColor="@color/text_grey"
         tools:text="20°C"/>
+    
+    <View
+        android:layout_alignParentBottom="true"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/general_divider_size"
+        android:background="@color/list_divider" />
 
 </RelativeLayout>
