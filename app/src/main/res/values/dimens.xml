@@ -20,12 +20,12 @@
 
     <!-- today fragment -->
     <dimen name="fragment_today_description_container_up_down_padding">40dp</dimen>
-    <dimen name="fragment_today_city_name">18sp</dimen>
+    <dimen name="fragment_today_city_name">20sp</dimen>
     <dimen name="fragment_today_description_icon">28dp</dimen>
-    <dimen name="fragment_today_description">18sp</dimen>
-    <dimen name="fragment_today_temperature">52sp</dimen>
+    <dimen name="fragment_today_description">16sp</dimen>
+    <dimen name="fragment_today_temperature">58sp</dimen>
+	<dimen name="fragment_today_space_height">12dp</dimen>
     <dimen name="fragment_today_detail_container_height">100dp</dimen>
-    <dimen name="fragment_today_detail_text">12sp</dimen>
 
     <!-- forecast fragment item -->
     <dimen name="fragment_forecast_item_container_height">88dp</dimen>

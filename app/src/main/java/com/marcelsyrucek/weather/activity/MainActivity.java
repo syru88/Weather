@@ -2,6 +2,7 @@ package com.marcelsyrucek.weather.activity;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.graphics.PorterDuff;
 import android.location.Location;
 import android.os.Bundle;
@@ -272,7 +273,11 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		mViewPager.setCurrentItem(mTabPosition);
 
 		mTabLayout = (TabLayout) findViewById(R.id.activity_main_tab_layout);
-		mTabLayout.setupWithViewPager(mViewPager);
+		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+			mTabLayout.setVisibility(View.GONE);
+		} else {
+			mTabLayout.setupWithViewPager(mViewPager);
+		}
 
 		mLoadingContainer = (ViewGroup) findViewById(R.id.activity_main_loading_container);
 		mLoadingTextView = (TextView) findViewById(R.id.activity_main_loading_text);
@@ -294,8 +299,8 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 			mLoadingContainer.setVisibility(View.VISIBLE);
 			ProgressBar progressBar = (ProgressBar) findViewById(R.id.activity_main_progress_bar);
 			progressBar.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary),
-					PorterDuff.Mode
-							.SRC_IN);
+																  PorterDuff.Mode
+																		  .SRC_IN);
 		} else {
 			// we have current location so fetch data about it
 			prepareCityWithCurrentPosition();
@@ -313,6 +318,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 			Logcat.d(TAG, "We just received current position, so save it to db as current position");
 			CityDatabase.getInstance(this).editCurrentCity(receivedCity);
 			mMenuAdapter.setCities(CityDatabase.getInstance(this).getCities());
+			mMenuAdapter.setLastSelectedPosition(0);
 		}
 
 		mRequestedCity = receivedCity;
@@ -374,7 +380,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 	public void onCityMenuClick(CityModel cityModel) {
 		mDrawerLayout.closeDrawer(Gravity.LEFT);
 
-		if (getString(R.string.prefs_cities_storage_current_city).equals(cityModel.getId())) {
+		if (getString(R.string.prefs_storage_current_city).equals(cityModel.getId())) {
 			// get current position and fetch new data from network
 			Logcat.e(TAG, "Obtain new current position");
 			mGeoLocationManager.reloadCurrentPosition();

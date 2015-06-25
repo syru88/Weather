@@ -145,7 +145,7 @@ public class NetworkService extends Service {
 		GetForecastRequest.getForecastWeather(requestedCity, getApplicationContext(), new Response.Listener<ForecastPojo>() {
 			@Override
 			public void onResponse(ForecastPojo response) {
-				Logcat.d(TAG, "onResponse: " + response.getCity().getName());
+				Logcat.d(TAG, "onResponse: " + response.getCity());
 				if (!"200".equals(response.getCod())) {
 					Logcat.e(TAG, "Error in server data: " + response.getCod());
 					if (mForecast == null) {

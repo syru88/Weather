@@ -1,15 +1,12 @@
 package com.marcelsyrucek.weather.database;
 
 import android.content.Context;
-import android.content.SharedPreferences;
 
-import com.google.gson.Gson;
 import com.marcelsyrucek.weather.R;
 import com.marcelsyrucek.weather.database.model.CityModel;
 import com.marcelsyrucek.weather.utility.Logcat;
 
 import java.util.ArrayList;
-import java.util.Map;
 
 /**
  * This class behaves as database for saving cities. For internal implementation it uses Shared Preferences storage.
@@ -37,7 +34,7 @@ public class CityDatabase {
 		// prepare data for showing city with last current position
 		CityModel cityModel = new CityModel();
 		cityModel.setName(mContext.getString(R.string.menu_menu_current_position));
-		mDatabase.addEntry(mContext.getString(R.string.prefs_cities_storage_current_city), cityModel);
+		mDatabase.addEntry(mContext.getString(R.string.prefs_storage_current_city), cityModel);
 
 	}
 
@@ -54,7 +51,7 @@ public class CityDatabase {
 	}
 
 	public CityModel getCityWithCurrentPosition() {
-		CityModel cityModel = mDatabase.getEntryWithId(mContext.getString(R.string.prefs_cities_storage_current_city));
+		CityModel cityModel = mDatabase.getEntryWithId(mContext.getString(R.string.prefs_storage_current_city));
 		if (cityModel.getId() == null) {
 			Logcat.e(TAG, "first start of application");
 			return null;
@@ -64,8 +61,8 @@ public class CityDatabase {
 	}
 
 	public void editCurrentCity(CityModel cityModel) {
-		cityModel.setId(mContext.getString(R.string.prefs_cities_storage_current_city));
-		mDatabase.editEntry(mContext.getString(R.string.prefs_cities_storage_current_city), cityModel);
+		cityModel.setId(mContext.getString(R.string.prefs_storage_current_city));
+		mDatabase.editEntry(mContext.getString(R.string.prefs_storage_current_city), cityModel);
 	}
 
 	public boolean isCityInDatabase(CityModel cityModel) {

@@ -13,7 +13,12 @@ public class City {
     private int population;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
-    /**
+	@Override
+	public String toString() {
+		return "City: " + name + ", id: " + id;
+	}
+
+	/**
      * 
      * @return
      *     The id

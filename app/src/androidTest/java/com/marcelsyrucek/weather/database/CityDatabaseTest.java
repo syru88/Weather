@@ -34,7 +34,7 @@ public class CityDatabaseTest {
 		mDatabase.addCity(cityModel);
 
 		cityModel = new CityModel();
-		cityModel.setId(InstrumentationRegistry.getTargetContext().getString(R.string.prefs_cities_storage_current_city));
+		cityModel.setId(InstrumentationRegistry.getTargetContext().getString(R.string.prefs_storage_current_city));
 		cityModel.setName("Current location");
 		mDatabase.addCity(cityModel);
 	}

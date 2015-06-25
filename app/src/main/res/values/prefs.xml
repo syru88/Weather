@@ -29,10 +29,12 @@
     </string-array>
     <string name="prefs_default_value_unit_of_temperature">0</string>
 
-    <!-- preferences for storing cities -->
+    <!-- names of db -->
     <string name="prefs_cities_storage">prefs_cities_storage</string>
-    <string name="prefs_cities_storage_current_city">prefs_cities_storage_current_city</string>
-    <string name="prefs_current_weather_storage">prefs_current_weather_storage</string>
+	<string name="prefs_current_weather_storage">prefs_current_weather_storage</string>
     <string name="prefs_forecast_storage">prefs_forecast_storage</string>
+
+	<!-- primary key for current city -->
+	<string name="prefs_storage_current_city">prefs_cities_storage_current_city</string>
 
 </resources>

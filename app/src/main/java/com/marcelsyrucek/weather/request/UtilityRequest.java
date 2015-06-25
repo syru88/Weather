@@ -19,7 +19,7 @@ public class UtilityRequest {
 			throw new IllegalArgumentException("The city object is null which shouldn't happen!!!");
 		}
 
-		if (city.getId() != null && !context.getString(R.string.prefs_cities_storage_current_city).equals(city.getId())) {
+		if (city.getId() != null && !context.getString(R.string.prefs_storage_current_city).equals(city.getId())) {
 			searchCondition.append("id=");
 			searchCondition.append(city.getId());
 		} else if (city.getLatitude() != 0 || city.getLongitude() != 0) {
