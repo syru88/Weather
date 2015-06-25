@@ -1,11 +1,14 @@
 package com.marcelsyrucek.weather.adapter;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.android.volley.toolbox.ImageLoader;
 import com.marcelsyrucek.weather.R;
+import com.marcelsyrucek.weather.VolleyWrapper;
 import com.marcelsyrucek.weather.database.model.ForecastWeatherModel;
 import com.marcelsyrucek.weather.utility.Logcat;
 import com.marcelsyrucek.weather.utility.WeatherUtility;
@@ -22,9 +25,11 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastItemViewHolder
 	private ArrayList<ForecastWeatherModel> mDays;
 	private int mTempPreference;
 	private String mDegreeUnit;
+	private ImageLoader mImageLoader;
 
-	public ForecastAdapter(String degreeUnit) {
+	public ForecastAdapter(String degreeUnit, Context context) {
 		mDegreeUnit = degreeUnit;
+		mImageLoader = VolleyWrapper.getInstance(context).getImageLoader();
 	}
 
 	public void setDays(ArrayList<ForecastWeatherModel> days, int tempPreference) {
@@ -47,6 +52,7 @@ public class ForecastAdapter extends RecyclerView.Adapter<ForecastItemViewHolder
 
 		holder.temperature.setText(WeatherUtility.getTemperature(mTempPreference, model.getTemperature()) + mDegreeUnit);
 		holder.description.setText(model.getDescription());
+		holder.icon.setImageUrl(model.getIconUrl(), mImageLoader);
 	}
 
 	@Override

@@ -1,5 +1,6 @@
 package com.marcelsyrucek.weather.database.model;
 
+import com.marcelsyrucek.weather.WeatherConfig;
 import com.marcelsyrucek.weather.database.JsonRecord;
 import com.marcelsyrucek.weather.utility.Logcat;
 
@@ -12,7 +13,7 @@ public class ForecastWeatherModel {
 	private double mTemperature;
 
 	public ForecastWeatherModel(String iconUrl, String description, double temperature) {
-		mIconUrl = iconUrl;
+		mIconUrl = WeatherConfig.API_IMAGES + iconUrl + WeatherConfig.API_IMAGES_TYPE;
 		mDescription = description;
 		mTemperature = temperature;
 	}

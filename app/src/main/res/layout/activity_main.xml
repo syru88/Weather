@@ -1,97 +1,105 @@
-<LinearLayout
+<org.lucasr.dspec.DesignSpecFrameLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    tools:context=".MainActivity">
+    app:designSpec="@raw/dspec">
 
-    <include layout="@layout/toolbar_layout"/>
-
-    <android.support.v4.widget.DrawerLayout
-        android:id="@+id/activity_main_drawer_layout"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        >
+        android:orientation="vertical"
+        tools:context=".MainActivity">
 
-        <LinearLayout
+
+        <include layout="@layout/toolbar_layout"/>
+
+        <android.support.v4.widget.DrawerLayout
+            android:id="@+id/activity_main_drawer_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
+            >
 
-            <android.support.design.widget.TabLayout
-                android:id="@+id/activity_main_tab_layout"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="?attr/colorPrimary"
-                app:tabSelectedTextColor="@color/text_primary"
-                app:tabTextColor="@color/text_grey"/>
-
-            <RelativeLayout
-                android:id="@+id/activity_main_loading_container"
+            <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:visibility="gone">
+                android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/activity_main_loading_text"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_centerInParent="true"
-                    android:text="@string/general_waiting_for_current_location"/>
-
-                <ProgressBar
-                    android:id="@+id/activity_main_progress_bar"
-                    style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                <android.support.design.widget.TabLayout
+                    android:id="@+id/activity_main_tab_layout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_alignLeft="@id/activity_main_loading_text"
-                    android:layout_alignRight="@id/activity_main_loading_text"
-                    android:layout_below="@id/activity_main_loading_text"
-                    android:layout_centerInParent="true"
-                    android:indeterminate="true"/>
+                    android:background="?attr/colorPrimary"
+                    app:tabSelectedTextColor="@color/text_primary"
+                    app:tabTextColor="@color/text_grey"/>
 
-            </RelativeLayout>
+                <RelativeLayout
+                    android:id="@+id/activity_main_loading_container"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:id="@+id/activity_main_loading_text"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:paddingLeft="@dimen/general_padding"
+                        android:paddingRight="@dimen/general_padding"
+                        android:text="@string/general_waiting_for_current_location"/>
+
+                    <ProgressBar
+                        android:id="@+id/activity_main_progress_bar"
+                        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_alignLeft="@id/activity_main_loading_text"
+                        android:layout_alignRight="@id/activity_main_loading_text"
+                        android:layout_below="@id/activity_main_loading_text"
+                        android:layout_centerInParent="true"
+                        android:indeterminate="true"/>
+
+                </RelativeLayout>
+
+                <FrameLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent">
+
+                    <android.support.v4.view.ViewPager
+                        android:id="@+id/activity_main_main_container"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"/>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="@dimen/general_shadow_size"
+                        android:background="@drawable/general_horizontal_shadow"/>
+                </FrameLayout>
+            </LinearLayout>
 
             <FrameLayout
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:id="@+id/activity_main_menu_container"
+                android:layout_width="@dimen/navigation_drawer_max_width"
+                android:layout_height="match_parent"
+                android:layout_gravity="left">
 
-                <android.support.v4.view.ViewPager
-                    android:id="@+id/activity_main_main_container"
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/activity_main_navigation_view"
                     android:layout_width="match_parent"
-                    android:layout_height="match_parent"/>
+                    android:layout_height="match_parent"
+                    android:background="@color/text_primary"
+                    />
 
                 <View
                     android:layout_width="match_parent"
                     android:layout_height="@dimen/general_shadow_size"
                     android:background="@drawable/general_horizontal_shadow"/>
+
             </FrameLayout>
-        </LinearLayout>
+        </android.support.v4.widget.DrawerLayout>
 
-        <FrameLayout
-			android:id="@+id/activity_main_menu_container"
-            android:layout_width="@dimen/navigation_drawer_max_width"
-            android:layout_height="match_parent"
-            android:layout_gravity="left">
-
-            <android.support.v7.widget.RecyclerView
-                android:id="@+id/activity_main_navigation_view"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="@color/text_primary"
-                />
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="@dimen/general_shadow_size"
-                android:background="@drawable/general_horizontal_shadow"/>
-
-        </FrameLayout>
-    </android.support.v4.widget.DrawerLayout>
-
-</LinearLayout>
-
+    </LinearLayout>
+</org.lucasr.dspec.DesignSpecFrameLayout>
 
 

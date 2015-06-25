@@ -99,16 +99,6 @@ public class ForecastFragment extends Fragment {
 		mBus.unregister(this);
 	}
 
-//	@Override
-//	public void setUserVisibleHint(boolean isVisibleToUser) {
-//		Logcat.d(TAG, "setUserVisibleHint");
-//		super.setUserVisibleHint(isVisibleToUser);
-//
-//		if (isVisibleToUser) {
-//			startNetworkService(true);
-//		}
-//	}
-
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 	                         Bundle savedInstanceState) {
@@ -124,7 +114,7 @@ public class ForecastFragment extends Fragment {
 				startNetworkService(false);
 			}
 		});
-		mAdapter = new ForecastAdapter(getResources().getString(R.string.weather_temp_degree));
+		mAdapter = new ForecastAdapter(getResources().getString(R.string.weather_temp_degree), container.getContext());
 		LinearLayoutManager layoutManager = new LinearLayoutManager(container.getContext(), LinearLayoutManager.VERTICAL, false);
 
 		mRecyclerView = (RecyclerView) mRoot.findViewById(R.id.fragment_forecast_recycler_view);
@@ -136,7 +126,7 @@ public class ForecastFragment extends Fragment {
 
 	@Subscribe
 	public void subscribeOnCityClickedEvent(CityClickedEvent event) {
-		Logcat.e(TAG, "CityClickedEvent: " + event.getCityModel());
+		Logcat.d(TAG, "CityClickedEvent: " + event.getCityModel());
 		mShownCity = event.getCityModel();
 		startNetworkService(true);
 	}

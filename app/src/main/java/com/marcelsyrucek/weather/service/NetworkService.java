@@ -64,7 +64,8 @@ public class NetworkService extends Service {
 		CityModel requestedCity = (CityModel) intent.getSerializableExtra(EXTRA_CITY);
 		mRequestValue = intent.getIntExtra(EXTRA_REQUEST, REQUEST_VALUE_CURRENT_WEATHER);
 
-		Logcat.e(TAG, "onStartCommand: " + requestedCity + ", request: " + mRequestValue + ", shown: " + mLastLoadedCity);
+		Logcat.d(TAG, "onStartCommand: " + requestedCity + ", request: " + mRequestValue + ", shown: " +
+				mLastLoadedCity);
 
 		if (requestedCity == null) {
 			Logcat.d(TAG, "We can't ask anything without city!");

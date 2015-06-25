@@ -1,5 +1,6 @@
 package com.marcelsyrucek.weather.activity;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.graphics.PorterDuff;
 import android.location.Location;
@@ -24,6 +25,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.marcelsyrucek.weather.R;
@@ -51,23 +53,31 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 
 	private static final int REQUEST_CODE_RECOVER_GOOGLE_PLAY_SERVICES = 1;
 
+	private static final String BUNDLE_M_IS_POSITION_RECEIVED = "BUNDLE_M_IS_POSITION_RECEIVED";
 	private static final String BUNDLE_LAST_KNOWN_LOCATION = "BUNDLE_LAST_KNOWN_LOCATION";
 	private static final String BUNDLE_MENU_POSITION = "BUNDLE_MENU_POSITION";
 	private static final String BUNDLE_TAB_POSITION = "BUNDLE_TAB_POSITION";
 
+	// menu and toolbars
 	private Toolbar mToolbar;
 	private DrawerLayout mDrawerLayout;
 	private ActionBarDrawerToggle mDrawerToggle;
 	private RecyclerView mCityRecyclerView;
 	private ViewGroup mMenuContainer;
-
 	private TabLayout mTabLayout;
+
+	// current position stuff
 	private ViewGroup mLoadingContainer;
+	private TextView mLoadingTextView;
+	private View mProgressBar;
+
+	// viewpagers
 	private ViewPager mViewPager;
 	private PagerAdapter mPagerAdapter;
 
 	private GeoLocationManager mGeoLocationManager;
 	private boolean mIsRequestForCurrentPosition;
+	private boolean mIsPositionReceived;
 
 	private Bus mBus = WeatherApplication.bus;
 	private MenuAdapter mMenuAdapter;
@@ -86,20 +96,19 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		setContentView(R.layout.activity_main);
 
 		if (savedInstanceState != null) {
+			mIsPositionReceived = savedInstanceState.getBoolean(BUNDLE_M_IS_POSITION_RECEIVED, false);
 			mRequestedCity = (CityModel) savedInstanceState.getSerializable(BUNDLE_LAST_SHOWN_CITY);
 			mLastKnownLocation = savedInstanceState.getParcelable(BUNDLE_LAST_KNOWN_LOCATION);
 			mMenuItemPosition = savedInstanceState.getInt(BUNDLE_MENU_POSITION, MenuAdapter.NO_POSITION);
 			mTabPosition = savedInstanceState.getInt(BUNDLE_TAB_POSITION, 0);
 		}
 
-		// prepare location manager
-		mGeoLocationManager = new GeoLocationManager(this);
-
 		// setup UI
 		setupToolbar();
 		setupDrawer();
 		setupMainMenu();
 		setupViewPager();
+		mGeoLocationManager = GeoLocationManager.getInstance(getApplicationContext());
 		if (mLastKnownLocation == null) {
 			loadCurrentPosition();
 		}
@@ -108,6 +117,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 
 	@Override
 	protected void onSaveInstanceState(Bundle outState) {
+		outState.putBoolean(BUNDLE_M_IS_POSITION_RECEIVED, mIsPositionReceived);
 		outState.putParcelable(BUNDLE_LAST_KNOWN_LOCATION, mLastKnownLocation);
 		outState.putSerializable(BUNDLE_LAST_SHOWN_CITY, mRequestedCity);
 		outState.putInt(BUNDLE_MENU_POSITION, mMenuAdapter.getLastSelectedPosition());
@@ -132,7 +142,9 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 	protected void onResume() {
 		super.onResume();
 
-		mGeoLocationManager.registerListener(this);
+		if (!mIsPositionReceived) {
+			mGeoLocationManager.registerListener(this);
+		}
 	}
 
 	@Override
@@ -222,22 +234,23 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 
 	private void setupDrawer() {
 		mDrawerLayout = (DrawerLayout) findViewById(R.id.activity_main_drawer_layout);
-	}
 
-	private void setupMainMenu() {
 		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, mToolbar, R.string.menu_open, R.string
 				.menu_close);
 		if (mRequestedCity != null) {
-			mToolbar.setTitle(mRequestedCity.getName());
+			getSupportActionBar().setTitle(mRequestedCity.getName());
 		}
+		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+		getSupportActionBar().setHomeButtonEnabled(true);
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
 		mDrawerLayout.setDrawerShadow(R.drawable.general_vertical_shadow, GravityCompat.START);
 		mDrawerToggle.syncState();
+	}
 
-		mCityRecyclerView = (RecyclerView) findViewById(R.id.activity_main_navigation_view);
-		mMenuContainer = (ViewGroup) findViewById(R.id.activity_main_menu_container);
+	private void setupMainMenu() {
 
 		// navigation drawer width according to styleguides
+		mMenuContainer = (ViewGroup) findViewById(R.id.activity_main_menu_container);
 		ViewGroup.LayoutParams lp = mMenuContainer.getLayoutParams();
 		lp.width = Math.min(WeatherUtility.getDisplayWidth(this) - getResources().getDimensionPixelSize(R.dimen.navigation_drawer_rigth_margin), lp.width);
 		mMenuContainer.setLayoutParams(lp);
@@ -245,6 +258,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		mMenuAdapter = new MenuAdapter(CityDatabase.getInstance(this).getCities(), this);
 		mMenuAdapter.setLastSelectedPosition(mMenuItemPosition);
 
+		mCityRecyclerView = (RecyclerView) findViewById(R.id.activity_main_navigation_view);
 		mCityRecyclerView.setAdapter(mMenuAdapter);
 		RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false);
 		mCityRecyclerView.setLayoutManager(layoutManager);
@@ -261,6 +275,8 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		mTabLayout.setupWithViewPager(mViewPager);
 
 		mLoadingContainer = (ViewGroup) findViewById(R.id.activity_main_loading_container);
+		mLoadingTextView = (TextView) findViewById(R.id.activity_main_loading_text);
+		mProgressBar = findViewById(R.id.activity_main_progress_bar);
 	}
 
 	private void loadCurrentPosition() {
@@ -271,20 +287,15 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 
 		if (mLastKnownLocation == null) {
 			mGeoLocationManager.registerListener(this);
+			mIsPositionReceived = false;
 			Logcat.d(TAG, "Current location is unknown");
 
-			mRequestedCity = CityDatabase.getInstance(getApplicationContext()).getCityWithCurrentPosition();
-			if (mRequestedCity == null) {
-				// first start of application and waiting for position, should happen just one time :-)
-				Logcat.e(TAG, "First start of application and we don't have position, so wait for it.");
-				mLoadingContainer.setVisibility(View.VISIBLE);
-				ProgressBar progressBar = (ProgressBar) findViewById(R.id.activity_main_progress_bar);
-				progressBar.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary),
-																	  PorterDuff.Mode
-																			  .SRC_IN);
-			} else {
-				sendCityClickEvent();
-			}
+			Logcat.e(TAG, "First start of application and we don't have position, so wait for it.");
+			mLoadingContainer.setVisibility(View.VISIBLE);
+			ProgressBar progressBar = (ProgressBar) findViewById(R.id.activity_main_progress_bar);
+			progressBar.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary),
+					PorterDuff.Mode
+							.SRC_IN);
 		} else {
 			// we have current location so fetch data about it
 			prepareCityWithCurrentPosition();
@@ -305,7 +316,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		}
 
 		mRequestedCity = receivedCity;
-		mToolbar.setTitle(mRequestedCity.getName());
+		getSupportActionBar().setTitle(mRequestedCity.getName());
 
 	}
 
@@ -328,24 +339,35 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 	}
 
 	@Override
-	public void lastKnownLocation(Location location) {
+	public void onLocationChanged(Location location) {
 		Logcat.e(TAG, "Just received location, latitude: " + location
 				.getLatitude() + ", latitude: " + location.getLongitude());
+
 		mGeoLocationManager.unregisterListener();
-
 		mLoadingContainer.setVisibility(View.GONE);
-
 		mLastKnownLocation = location;
+		mIsPositionReceived = true;
 
-		// if current location isn't in area which has already been requested, refresh data
-		if (!GeoLocationManager.isLocationInArea(mLastKnownLocation.getLatitude(), mLastKnownLocation.getLongitude(),
-												 mRequestedCity, new float[3])) {
-			Logcat.e(TAG, "The new location is different from old one, so refresh");
+		prepareCityWithCurrentPosition();
+		sendCityClickEvent();
+	}
 
-			prepareCityWithCurrentPosition();
-			sendCityClickEvent();
+	@Override
+	public void onRequestLocationFailed(String errorMesage) {
+		Logcat.d(TAG, "onRequestLocationFailed");
+
+		if (mLoadingContainer.getVisibility() == View.VISIBLE) {
+			// application started first time so we don't have any data to show
+			mProgressBar.setVisibility(View.GONE);
+			mLoadingTextView.setText(errorMesage);
+		} else {
+			Snackbar.make(mViewPager, errorMesage, Snackbar.LENGTH_LONG).show();
 		}
+	}
 
+	@Override
+	public Activity getActivity() {
+		return this;
 	}
 
 	@Override
@@ -361,7 +383,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		} else {
 			// fetch data from "db" or network
 			mRequestedCity = cityModel;
-			mToolbar.setTitle(mRequestedCity.getName());
+			getSupportActionBar().setTitle(mRequestedCity.getName());
 			sendCityClickEvent();
 		}
 	}

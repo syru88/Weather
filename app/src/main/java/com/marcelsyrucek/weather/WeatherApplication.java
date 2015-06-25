@@ -40,6 +40,7 @@ public class WeatherApplication extends Application {
 		// initialize preferences, database, location manager etc.
 		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);
 		CityDatabase.getInstance(this);
+		GeoLocationManager.getInstance(this);
 	}
 
 }

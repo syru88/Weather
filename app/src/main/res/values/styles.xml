@@ -16,6 +16,10 @@
         <item name="colorAccent">@color/primary</item>
     </style>
 
+    <style name="ToolbarTitle" parent="TextAppearance.Widget.AppCompat.Toolbar.Title">
+        <item name="android:textSize">@dimen/toolbar_title_size</item>
+    </style>
+
     <style name="TitleAlertDialog" parent="TextAppearance.AppCompat.Title">
         <item name="android:textColor">@color/black</item>
     </style>

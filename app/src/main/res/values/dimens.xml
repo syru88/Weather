@@ -16,6 +16,7 @@
     <dimen name="navigation_drawer_max_width">320dp</dimen>
     <dimen name="navigation_drawer_rigth_margin">56dp</dimen>
     <dimen name="toolbar_title_left_margin">72dp</dimen>
+    <dimen name="toolbar_title_size">20sp</dimen>
 
     <!-- today fragment -->
     <dimen name="fragment_today_description_container_up_down_padding">40dp</dimen>

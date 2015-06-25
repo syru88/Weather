@@ -1,5 +1,6 @@
 package com.marcelsyrucek.weather.listener;
 
+import android.app.Activity;
 import android.location.Location;
 
 /**
@@ -9,6 +10,10 @@ import android.location.Location;
  */
 public interface GeoLocationListener {
 
-	void lastKnownLocation(Location location);
+	void onLocationChanged(Location location);
+
+	void onRequestLocationFailed(String errorMesage);
+
+	Activity getActivity();
 
 }

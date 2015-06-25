@@ -5,6 +5,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.android.volley.toolbox.NetworkImageView;
 import com.marcelsyrucek.weather.R;
 
 /**
@@ -12,13 +13,13 @@ import com.marcelsyrucek.weather.R;
  */
 public class ForecastItemViewHolder extends RecyclerView.ViewHolder {
 
-	ImageView icon;
+	NetworkImageView icon;
 	TextView description;
 	TextView temperature;
 
 	public ForecastItemViewHolder(View itemView) {
 		super(itemView);
-		icon = (ImageView) itemView.findViewById(R.id.fragment_forecast_item_icon);
+		icon = (NetworkImageView) itemView.findViewById(R.id.fragment_forecast_item_icon);
 		description = (TextView) itemView.findViewById(R.id.fragment_forecast_item_description);
 		temperature = (TextView) itemView.findViewById(R.id.fragment_forecast_item_temp);
 	}

@@ -15,7 +15,8 @@ public class WeatherConfig {
 	public static final String API_IMAGES = "http://openweathermap.org/img/w/";
 	public static final String API_IMAGES_TYPE = ".png";
 
-	public static final int DISTANCE_LOCATION_ACCURACY_IN_METERS = 1000 * 10; // 10 km
+	public static final int DISTANCE_LOCATION_ACCURACY_IN_METERS = 10 * 1000; // 10 km
+	public static final int CURRENT_LOCATION_TIMEOUT_IN_MILLIS = 60 * 1000;
 
 
 }

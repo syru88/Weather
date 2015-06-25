@@ -2,6 +2,7 @@ package com.marcelsyrucek.weather.fragment;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.Snackbar;
@@ -13,7 +14,11 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.ImageRequest;
 import com.marcelsyrucek.weather.R;
+import com.marcelsyrucek.weather.VolleyWrapper;
 import com.marcelsyrucek.weather.WeatherApplication;
 import com.marcelsyrucek.weather.activity.MainActivity;
 import com.marcelsyrucek.weather.database.model.CityModel;
@@ -100,16 +105,6 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 		mBus.unregister(this);
 	}
 
-//	@Override
-//	public void setUserVisibleHint(boolean isVisibleToUser) {
-//		Logcat.d(TAG, "setUserVisibleHint");
-//		super.setUserVisibleHint(isVisibleToUser);
-//
-//		if (isVisibleToUser) {
-//			startNetworkService(true);
-//		}
-//	}
-
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 	                         Bundle savedInstanceState) {
@@ -152,7 +147,7 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 
 	@Subscribe
 	public void subscribeOnCityClickedEvent(CityClickedEvent event) {
-		Logcat.e(TAG, "CityClickedEvent: " + event.getCityModel());
+		Logcat.d(TAG, "CityClickedEvent: " + event.getCityModel());
 		mShownCity = event.getCityModel();
 		startNetworkService(true);
 	}
@@ -190,7 +185,7 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 				getString(R.string.prefs_default_value_unit_of_temperature)));
 	}
 
-	private void loadData(CurrentWeatherModel currentWeatherModel) {
+	private void loadData(final CurrentWeatherModel currentWeatherModel) {
 		loadUnitFromPreferences();
 
 		mWindSpeedUnit = WeatherUtility.getWindSpeedUnit(mLengthPreference, getActivity());
@@ -199,8 +194,19 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 		mDescription.setText(currentWeatherModel.getDescription());
 		mTemperature.setText(WeatherUtility.getTemperature(mTempPreference, currentWeatherModel.getTemperature()) + getString(R.string.weather_temp_degree));
 
-		// TODO Marcel: handle images
-//
+		ImageRequest imageRequest = new ImageRequest(currentWeatherModel.getIconUrl(), new Response.Listener<Bitmap>() {
+			@Override
+			public void onResponse(Bitmap response) {
+				mIcon.setImageBitmap(response);
+			}
+		}, 0, 0, null, null, new Response.ErrorListener() {
+			@Override
+			public void onErrorResponse(VolleyError error) {
+				Logcat.e(TAG, "Icon failed: " + currentWeatherModel.getIconUrl());
+			}
+		});
+		VolleyWrapper.getInstance(getActivity().getApplicationContext()).addToRequestQueue(imageRequest);
+
 		mHumidity.setText(currentWeatherModel.getHumidity() + getString(R.string.weather_humidity_unit));
 		mPrecipitation.setText(currentWeatherModel.getPrecipitation() + " " + getString(R.string
 				.weather_precipitation_unit));
