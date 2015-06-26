@@ -1,5 +1,8 @@
 package com.marcelsyrucek.weather.database.model;
 
+import android.content.Context;
+
+import com.marcelsyrucek.weather.R;
 import com.marcelsyrucek.weather.database.JsonRecord;
 import com.marcelsyrucek.weather.utility.GeoLocationManager;
 
@@ -12,6 +15,11 @@ import java.io.Serializable;
 public class CityModel implements Serializable, JsonRecord {
 
 	public static final String TAG = CityModel.class.getSimpleName();
+
+	public static final int CURRENT_CITY = 0;
+	public static final int SEARCH_CITY = 1;
+	public static final int ID_CITY = 2;
+
 
 	private String mName;
 	private String mId;
@@ -77,6 +85,16 @@ public class CityModel implements Serializable, JsonRecord {
 	public String toString() {
 		return "City: " + mName + ", id: " + mId + ", lat: " + mLatitude + ", long: " +
 				mLongitude;
+	}
+
+	public int getCityType(Context context) {
+		if (context.getString(R.string.prefs_storage_current_city_key).equals(mId)) {
+			return CURRENT_CITY;
+		} else if (context.getString(R.string.prefs_search_city_key).equals(mId)) {
+			return SEARCH_CITY;
+		} else {
+			return ID_CITY;
+		}
 	}
 
 	@Override

@@ -80,15 +80,17 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 	}
 
 	private void startNetworkService(boolean showProgress) {
-		Intent intent = new Intent(getActivity(), NetworkService.class);
-		intent.putExtra(NetworkService.EXTRA_REQUEST, NetworkService.REQUEST_VALUE_CURRENT_WEATHER);
-		intent.putExtra(NetworkService.EXTRA_CITY, mShownCity);
+		if (mShownCity != null) {
+			Intent intent = new Intent(getActivity(), NetworkService.class);
+			intent.putExtra(NetworkService.EXTRA_REQUEST, NetworkService.REQUEST_VALUE_CURRENT_WEATHER);
+			intent.putExtra(NetworkService.EXTRA_CITY, mShownCity);
 
-		if (mSwipeRefreshLayout != null && showProgress) {
-			mSwipeRefreshLayout.setRefreshing(true);
+			if (mSwipeRefreshLayout != null && showProgress) {
+				mSwipeRefreshLayout.setRefreshing(true);
+			}
+
+			getActivity().startService(intent);
 		}
-
-		getActivity().startService(intent);
 	}
 
 	@Override
@@ -164,7 +166,7 @@ public class TodayFragment extends Fragment /*implements LoaderManager.LoaderCal
 	 */
 	@Subscribe
 	public void subscribeOnCurrentWeatherLoadedEvent(CurrentWeatherLoadedEvent event) {
-		Logcat.e(TAG, "CurrentWeatherLoadedEvent: " + event.getCurrentWeatherModel());
+		Logcat.d(TAG, "CurrentWeatherLoadedEvent: " + event.getCurrentWeatherModel());
 
 		if (mSwipeRefreshLayout != null) {
 			mSwipeRefreshLayout.setRefreshing(false);

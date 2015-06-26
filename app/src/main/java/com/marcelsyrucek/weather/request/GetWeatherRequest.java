@@ -15,7 +15,7 @@ import com.marcelsyrucek.weather.utility.GsonRequest;
 import com.marcelsyrucek.weather.utility.Logcat;
 
 /**
- * Created by marcel on 18.6.2015.
+ * Created by marcel on 22.6.2015.
  */
 public class GetWeatherRequest {
 

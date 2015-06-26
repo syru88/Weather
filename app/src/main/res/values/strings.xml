@@ -3,7 +3,7 @@
 
     <!-- General -->
     <string name="general_ok">ok</string>
-    <string name="general_waiting_for_current_location">Waiting for current location</string>
+    <string name="general_waiting_for_current_position">Waiting for current location</string>
 
     <!-- Network errors -->
     <string name="network_error_no_connection">No connection</string>
@@ -30,6 +30,8 @@
     <!-- Menus -->
     <string name="menu_today">Today</string>
     <string name="menu_forecast">Forecast</string>
+    <string name="menu_today_toolbar">Today in %s</string>
+    <string name="menu_forecast_toolbar">Forecast for %s</string>
     <string name="menu_open">Open</string>
     <string name="menu_close">Close</string>
 
@@ -47,7 +49,7 @@
 
     <!-- Location error -->
     <string name="location_error_general">We can\'t get current position. This should be more accurate, e.g.
-        dialog to setting with GPS...</string>
+        dialog for GPS settings...</string>
 
     <!-- About Dialog -->
     <string name="dialog_about_message">Weather app made by Marcel Syrucek</string>

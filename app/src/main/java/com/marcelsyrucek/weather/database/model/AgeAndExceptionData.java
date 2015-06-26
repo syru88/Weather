@@ -2,26 +2,27 @@ package com.marcelsyrucek.weather.database.model;
 
 import android.text.format.DateUtils;
 
+import com.marcelsyrucek.weather.WeatherConfig;
+
 import java.util.GregorianCalendar;
 
 /**
- * Created by marcel on 18.6.2015.
+ * Created by marcel on 21.6.2015.
  */
 public class AgeAndExceptionData {
-
-	/** 10 minutes */
-	public static final int MAX_DIFF_IN_MINUTES = 1000 * 60 * 10;
 
 	private long mReadTime;
 	private boolean mIsError;
 	private String mErrorText;
+
+	protected String mId;
 
 	public AgeAndExceptionData() {
 		mReadTime = GregorianCalendar.getInstance().getTimeInMillis();
 	}
 
 	public boolean shoulReload() {
-		if (GregorianCalendar.getInstance().getTimeInMillis() - mReadTime > MAX_DIFF_IN_MINUTES) {
+		if (GregorianCalendar.getInstance().getTimeInMillis() - mReadTime > WeatherConfig.DATA_VALID_FOR_IN_MILLIS) {
 			return true;
 		} else {
 			return false;
@@ -46,5 +47,13 @@ public class AgeAndExceptionData {
 
 	public void setErrorText(String errorText) {
 		mErrorText = errorText;
+	}
+
+	public String getId() {
+		return mId;
+	}
+
+	public void setId(String id) {
+		mId = id;
 	}
 }

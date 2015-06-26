@@ -1,6 +1,7 @@
 package com.marcelsyrucek.weather.utility;
 
 import android.content.Context;
+import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -164,17 +165,25 @@ public class GeoLocationManager implements GoogleApiClient.ConnectionCallbacks, 
 	 */
 	private void getAndroidLocation() {
 		Logcat.d(TAG, "getAndroidLocation");
-		Location lastLocation = mAndroidManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-		if (lastLocation != null) {
-			Logcat.d(TAG, "We have last known location");
-			mTimer.cancel();
-			mLocation = lastLocation;
-			if (mGeoLocationListener != null) {
-				mGeoLocationListener.onLocationChanged(mLocation);
+
+		Criteria criteria = new Criteria();
+		String provider = mAndroidManager.getBestProvider(criteria, true);
+		if (provider != null) {
+			Location lastLocation = mAndroidManager.getLastKnownLocation(provider);
+			if (lastLocation != null) {
+				Logcat.d(TAG, "We have last known location");
+				mTimer.cancel();
+				mLocation = lastLocation;
+				if (mGeoLocationListener != null) {
+					mGeoLocationListener.onLocationChanged(mLocation);
+				}
+			} else {
+				Logcat.d(TAG, "No last location, run request.");
+				mAndroidManager.requestSingleUpdate(provider, this, Looper
+						.getMainLooper());
 			}
 		} else {
-			Logcat.d(TAG, "No last location, run request.");
-			mAndroidManager.requestSingleUpdate(LocationManager.NETWORK_PROVIDER, this, Looper.getMainLooper());
+
 		}
 
 	}
@@ -212,14 +221,14 @@ public class GeoLocationManager implements GoogleApiClient.ConnectionCallbacks, 
 		mTimerTask = new TimerTask() {
 			@Override
 			public void run() {
-				Logcat.e(TAG, "RUN");
+				Logcat.d(TAG, "RUN");
 				mIsError = true;
 				mErrorText = mContext.getString(R.string.location_error_general);
 				if (mGeoLocationListener != null) {
 					mGeoLocationListener.getActivity().runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
-							Logcat.e(TAG, "Time is over!");
+							Logcat.d(TAG, "Time is over!");
 							mGeoLocationListener.onRequestLocationFailed(mErrorText);
 						}
 					});

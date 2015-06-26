@@ -9,7 +9,7 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- * Created by marcel on 18.6.2015.
+ * Created by marcel on 21.6.2015.
  */
 public class CurrentWeatherPojoDAOTest {
 
@@ -38,11 +38,10 @@ public class CurrentWeatherPojoDAOTest {
 
 	@Test
 	public void testWindSpeed() throws Exception {
-		mDAO.setWindSpeed(10);
 
-		assertEquals(22.4, WeatherUtility.getWindSpeed(WeatherUtility.LENGTH_MILE, 0), 0);
-		assertEquals(36, WeatherUtility.getWindSpeed(WeatherUtility.LENGTH_KILOMETER, 0), 0);
-		assertEquals(10, WeatherUtility.getWindSpeed(WeatherUtility.LENGTH_METER, 0), 0);
+		assertEquals(22.4, WeatherUtility.getWindSpeed(WeatherUtility.LENGTH_MILE, 10), 0);
+		assertEquals(36, WeatherUtility.getWindSpeed(WeatherUtility.LENGTH_KILOMETER, 10), 0);
+		assertEquals(10, WeatherUtility.getWindSpeed(WeatherUtility.LENGTH_METER, 10), 0);
 	}
 
 	@Test

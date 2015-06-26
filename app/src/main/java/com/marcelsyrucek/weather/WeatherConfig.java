@@ -1,7 +1,7 @@
 package com.marcelsyrucek.weather;
 
 /**
- * Created by marcel on 15.6.2015.
+ * Created by marcel on 21.6.2015.
  */
 public class WeatherConfig {
 	public static final boolean LOGS = BuildConfig.LOGS;
@@ -16,7 +16,8 @@ public class WeatherConfig {
 	public static final String API_IMAGES_TYPE = ".png";
 
 	public static final int DISTANCE_LOCATION_ACCURACY_IN_METERS = 10 * 1000; // 10 km
-	public static final int CURRENT_LOCATION_TIMEOUT_IN_MILLIS = 60 * 1000;
+	public static final int CURRENT_LOCATION_TIMEOUT_IN_MILLIS = 20 * 1000;
+	public static final long DATA_VALID_FOR_IN_MILLIS = 2 * 60 * 1000; // 2 minute
 
 
 }

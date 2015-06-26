@@ -11,7 +11,7 @@ import com.squareup.otto.Bus;
 import com.squareup.otto.ThreadEnforcer;
 
 /**
- * Created by marcel on 17.6.2015.
+ * Created by marcel on 22.6.2015.
  */
 public class WeatherApplication extends Application {
 	private static WeatherApplication sInstance;
@@ -30,12 +30,15 @@ public class WeatherApplication extends Application {
 	public void onCreate() {
 		super.onCreate();
 		VolleyWrapper.getInstance(this);
-		Stetho.initialize( Stetho.newInitializerBuilder(this)
-				.enableDumpapp(
-						Stetho.defaultDumperPluginsProvider(this))
-				.enableWebKitInspector(
-						Stetho.defaultInspectorModulesProvider(this))
-				.build());
+
+		if (WeatherConfig.LOGS) {
+			Stetho.initialize(Stetho.newInitializerBuilder(this)
+					.enableDumpapp(
+							Stetho.defaultDumperPluginsProvider(this))
+					.enableWebKitInspector(
+							Stetho.defaultInspectorModulesProvider(this))
+					.build());
+		}
 
 		// initialize preferences, database, location manager etc.
 		PreferenceManager.setDefaultValues(this, R.xml.preferences, false);

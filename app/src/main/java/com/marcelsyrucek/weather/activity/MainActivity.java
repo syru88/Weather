@@ -27,12 +27,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.marcelsyrucek.weather.R;
 import com.marcelsyrucek.weather.WeatherApplication;
 import com.marcelsyrucek.weather.adapter.MenuAdapter;
 import com.marcelsyrucek.weather.database.CityDatabase;
+import com.marcelsyrucek.weather.database.CurrentWeatherDatabase;
+import com.marcelsyrucek.weather.database.ForecastDatabase;
 import com.marcelsyrucek.weather.database.model.CityModel;
 import com.marcelsyrucek.weather.dialog.AboutDialogFragment;
 import com.marcelsyrucek.weather.event.CityClickedEvent;
@@ -40,6 +41,7 @@ import com.marcelsyrucek.weather.event.CityLoadedEvent;
 import com.marcelsyrucek.weather.fragment.ForecastFragment;
 import com.marcelsyrucek.weather.fragment.TodayFragment;
 import com.marcelsyrucek.weather.listener.GeoLocationListener;
+import com.marcelsyrucek.weather.service.NetworkService;
 import com.marcelsyrucek.weather.utility.GeoLocationManager;
 import com.marcelsyrucek.weather.utility.Logcat;
 import com.marcelsyrucek.weather.utility.WeatherUtility;
@@ -70,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 	// current position stuff
 	private ViewGroup mLoadingContainer;
 	private TextView mLoadingTextView;
-	private View mProgressBar;
+	private ProgressBar mProgressBar;
 
 	// viewpagers
 	private ViewPager mViewPager;
@@ -93,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		Logcat.e(TAG, "onCreate");
+		Logcat.d(TAG, "onCreate");
 		setContentView(R.layout.activity_main);
 
 		if (savedInstanceState != null) {
@@ -110,7 +112,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		setupMainMenu();
 		setupViewPager();
 		mGeoLocationManager = GeoLocationManager.getInstance(getApplicationContext());
-		if (mLastKnownLocation == null) {
+		if (mLastKnownLocation == null && mRequestedCity == null) {
 			loadCurrentPosition();
 		}
 
@@ -143,7 +145,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 	protected void onResume() {
 		super.onResume();
 
-		if (!mIsPositionReceived) {
+		if (!mIsPositionReceived && mRequestedCity == null) {
 			mGeoLocationManager.registerListener(this);
 		}
 	}
@@ -177,6 +179,9 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 			@Override
 			public boolean onQueryTextSubmit(String query) {
 				mRequestedCity = new CityModel(query);
+				mRequestedCity.setId(getString(R.string.prefs_search_city_key));
+				mMenuAdapter.unSelectPosition();
+				mIsRequestForCurrentPosition = false;
 				sendCityClickEvent();
 				mSearchMenuItem.collapseActionView();
 				return true;
@@ -196,12 +201,19 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 
 		MenuItem menuItem = menu.findItem(R.id.menu_edit_city);
 
+		if (mRequestedCity == null) {
+			menuItem.setVisible(false);
+		} else {
+			menuItem.setVisible(true);
+		}
+
 		// Add or Remove
 		if (CityDatabase.getInstance(this).isCityInDatabase(mRequestedCity)) {
 			menuItem.setTitle(R.string.menu_action_remove_this_city);
 		} else {
 			menuItem.setTitle(R.string.menu_action_add_this_city);
 		}
+
 
 		return true;
 	}
@@ -238,9 +250,6 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 
 		mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, mToolbar, R.string.menu_open, R.string
 				.menu_close);
-		if (mRequestedCity != null) {
-			getSupportActionBar().setTitle(mRequestedCity.getName());
-		}
 		getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 		getSupportActionBar().setHomeButtonEnabled(true);
 		mDrawerLayout.setDrawerListener(mDrawerToggle);
@@ -256,7 +265,7 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		lp.width = Math.min(WeatherUtility.getDisplayWidth(this) - getResources().getDimensionPixelSize(R.dimen.navigation_drawer_rigth_margin), lp.width);
 		mMenuContainer.setLayoutParams(lp);
 
-		mMenuAdapter = new MenuAdapter(CityDatabase.getInstance(this).getCities(), this);
+		mMenuAdapter = new MenuAdapter(CityDatabase.getInstance(this).getCities(), this, this);
 		mMenuAdapter.setLastSelectedPosition(mMenuItemPosition);
 
 		mCityRecyclerView = (RecyclerView) findViewById(R.id.activity_main_navigation_view);
@@ -271,6 +280,23 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		mViewPager = (ViewPager) findViewById(R.id.activity_main_main_container);
 		mViewPager.setAdapter(mPagerAdapter);
 		mViewPager.setCurrentItem(mTabPosition);
+		mViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
+			@Override
+			public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+			}
+
+			@Override
+			public void onPageSelected(int position) {
+				setToolbarTitle();
+			}
+
+			@Override
+			public void onPageScrollStateChanged(int state) {
+
+			}
+		});
+		setToolbarTitle();
 
 		mTabLayout = (TabLayout) findViewById(R.id.activity_main_tab_layout);
 		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
@@ -280,8 +306,15 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		}
 
 		mLoadingContainer = (ViewGroup) findViewById(R.id.activity_main_loading_container);
+		if (mIsPositionReceived || mRequestedCity != null) {
+			mLoadingContainer.setVisibility(View.GONE);
+		}
+
 		mLoadingTextView = (TextView) findViewById(R.id.activity_main_loading_text);
-		mProgressBar = findViewById(R.id.activity_main_progress_bar);
+		mProgressBar = (ProgressBar) findViewById(R.id.activity_main_progress_bar);
+		mProgressBar.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary),
+				PorterDuff.Mode
+						.SRC_IN);
 	}
 
 	private void loadCurrentPosition() {
@@ -290,22 +323,28 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		mIsRequestForCurrentPosition = true;
 		mLastKnownLocation = mGeoLocationManager.getLastKnownLocation();
 
-		if (mLastKnownLocation == null) {
+		if (mLastKnownLocation == null && mRequestedCity == null) {
 			mGeoLocationManager.registerListener(this);
 			mIsPositionReceived = false;
 			Logcat.d(TAG, "Current location is unknown");
+			CityDatabase.getInstance(this).editCurrentCity(new CityModel(getString(R.string.menu_menu_current_position)));
+			refreshMenu();
 
-			Logcat.e(TAG, "First start of application and we don't have position, so wait for it.");
+			mMenuAdapter.setLastSelectedPosition(0);
 			mLoadingContainer.setVisibility(View.VISIBLE);
-			ProgressBar progressBar = (ProgressBar) findViewById(R.id.activity_main_progress_bar);
-			progressBar.getIndeterminateDrawable().setColorFilter(getResources().getColor(R.color.primary),
-																  PorterDuff.Mode
-																		  .SRC_IN);
+
 		} else {
 			// we have current location so fetch data about it
 			prepareCityWithCurrentPosition();
 			sendCityClickEvent();
 		}
+	}
+
+	private void refreshMenu() {
+		Logcat.e(TAG, "refreshMenu");
+
+		mMenuAdapter.setCities(CityDatabase.getInstance(this).getCities());
+		setToolbarTitle();
 	}
 
 	@Subscribe
@@ -317,16 +356,15 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 			mIsRequestForCurrentPosition = false;
 			Logcat.d(TAG, "We just received current position, so save it to db as current position");
 			CityDatabase.getInstance(this).editCurrentCity(receivedCity);
-			mMenuAdapter.setCities(CityDatabase.getInstance(this).getCities());
-			mMenuAdapter.setLastSelectedPosition(0);
 		}
 
 		mRequestedCity = receivedCity;
-		getSupportActionBar().setTitle(mRequestedCity.getName());
+		refreshMenu();
 
 	}
 
 	private void sendCityClickEvent() {
+		mLoadingContainer.setVisibility(View.GONE);
 		mBus.post(new CityClickedEvent(mRequestedCity));
 	}
 
@@ -340,17 +378,17 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		mRequestedCity.setLatitude(mLastKnownLocation.getLatitude());
 		mRequestedCity.setLongitude(mLastKnownLocation.getLongitude());
 		mRequestedCity.setName(getString(R.string.menu_menu_current_position));
+		mRequestedCity.setId(getString(R.string.prefs_storage_current_city_key));
 
 		CityDatabase.getInstance(getApplicationContext()).editCurrentCity(mRequestedCity);
 	}
 
 	@Override
 	public void onLocationChanged(Location location) {
-		Logcat.e(TAG, "Just received location, latitude: " + location
+		Logcat.d(TAG, "Just received location, latitude: " + location
 				.getLatitude() + ", latitude: " + location.getLongitude());
 
 		mGeoLocationManager.unregisterListener();
-		mLoadingContainer.setVisibility(View.GONE);
 		mLastKnownLocation = location;
 		mIsPositionReceived = true;
 
@@ -369,6 +407,8 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 		} else {
 			Snackbar.make(mViewPager, errorMesage, Snackbar.LENGTH_LONG).show();
 		}
+
+		setToolbarTitle();
 	}
 
 	@Override
@@ -380,36 +420,74 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 	public void onCityMenuClick(CityModel cityModel) {
 		mDrawerLayout.closeDrawer(Gravity.LEFT);
 
-		if (getString(R.string.prefs_storage_current_city).equals(cityModel.getId())) {
+		if (getString(R.string.prefs_storage_current_city_key).equals(cityModel.getId())) {
 			// get current position and fetch new data from network
-			Logcat.e(TAG, "Obtain new current position");
+			Logcat.d(TAG, "Obtain new current position");
+
+			mLoadingContainer.setVisibility(View.VISIBLE);
+			mLoadingTextView.setText(R.string.general_waiting_for_current_position);
+			mProgressBar.setVisibility(View.VISIBLE);
+
 			mGeoLocationManager.reloadCurrentPosition();
 			mIsRequestForCurrentPosition = true;
+			mRequestedCity = null;
 			loadCurrentPosition();
 		} else {
 			// fetch data from "db" or network
 			mRequestedCity = cityModel;
-			getSupportActionBar().setTitle(mRequestedCity.getName());
+			mIsRequestForCurrentPosition = false;
+			setToolbarTitle();
 			sendCityClickEvent();
 		}
 	}
 
+	private void setToolbarTitle() {
+		String title;
+		if (mRequestedCity != null && mRequestedCity.getName() != null) {
+			title = mRequestedCity.getName();
+		} else {
+			title = getString(R.string.app_name);
+		}
+
+		if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+			if (mViewPager != null && mViewPager.getCurrentItem() == 1) {
+				// forecast page
+				getSupportActionBar().setTitle(getString(R.string.menu_forecast_toolbar, title));
+			} else {
+				getSupportActionBar().setTitle(getString(R.string.menu_today_toolbar, title));
+			}
+		} else {
+			getSupportActionBar().setTitle(title);
+		}
+	}
+
+	private void addCacheDataToDatabase() {
+		Logcat.d(TAG, "addCacheDataToDatabase");
+		Intent intent = new Intent(this, NetworkService.class);
+		intent.putExtra(NetworkService.EXTRA_CITY, mRequestedCity);
+		intent.putExtra(NetworkService.EXTRA_REQUEST, NetworkService.REQUEST_VALUE_SAVE_DATA);
+		startService(intent);
+	}
+
 	private void addCityToDabase() {
 		Logcat.d(TAG, "addCityToDatabase");
+		addCacheDataToDatabase();
 		boolean result = CityDatabase.getInstance(this).addCity(mRequestedCity);
 		if (result) {
 			Snackbar.make(mViewPager, getString(R.string.notification_city_added, mRequestedCity.getName()), Snackbar.LENGTH_LONG).show();
+			mMenuAdapter.setCities(CityDatabase.getInstance(this).getCities());
 		}
-		mMenuAdapter.setCities(CityDatabase.getInstance(this).getCities());
 	}
 
 	private void removeCityFromDatabase() {
 		Logcat.d(TAG, "removeCityFromDatabase");
+		CurrentWeatherDatabase.getInstance(this).deleteCurrentWeather(mRequestedCity);
+		ForecastDatabase.getInstance(this).deleteForecast(mRequestedCity);
 		boolean result = CityDatabase.getInstance(this).removeCity(mRequestedCity);
 		if (result) {
 			Snackbar.make(mViewPager, getString(R.string.notification_city_removed, mRequestedCity.getName()), Snackbar.LENGTH_LONG).show();
+			mMenuAdapter.setCities(CityDatabase.getInstance(this).getCities());
 		}
-		mMenuAdapter.setCities(CityDatabase.getInstance(this).getCities());
 	}
 
 	@Override
@@ -445,19 +523,6 @@ public class MainActivity extends AppCompatActivity implements GeoLocationListen
 			} else {
 				return getString(R.string.menu_forecast);
 			}
-		}
-	}
-
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		Logcat.d(TAG, "onActivityResult: " + requestCode);
-		switch (requestCode) {
-			case REQUEST_CODE_RECOVER_GOOGLE_PLAY_SERVICES:
-				if (resultCode == RESULT_CANCELED) {
-					Toast.makeText(this, R.string.google_play_services_not_installed, Toast.LENGTH_LONG).show();
-					finish();
-				}
-				break;
 		}
 	}
 

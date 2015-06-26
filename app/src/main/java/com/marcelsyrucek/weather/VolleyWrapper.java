@@ -15,7 +15,7 @@ import com.marcelsyrucek.weather.utility.OkHttpStack;
 import com.squareup.okhttp.OkHttpClient;
 
 /**
- * Created by marcel on 17.6.2015.
+ * Created by marcel on 22.6.2015.
  */
 public class VolleyWrapper {
 

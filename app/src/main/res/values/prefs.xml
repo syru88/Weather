@@ -34,7 +34,8 @@
 	<string name="prefs_current_weather_storage">prefs_current_weather_storage</string>
     <string name="prefs_forecast_storage">prefs_forecast_storage</string>
 
-	<!-- primary key for current city -->
-	<string name="prefs_storage_current_city">prefs_cities_storage_current_city</string>
+	<!-- primary keys for cities -->
+	<string name="prefs_storage_current_city_key">prefs_storage_current_city_key</string>
+    <string name="prefs_search_city_key">prefs_search_city_key</string>
 
 </resources>

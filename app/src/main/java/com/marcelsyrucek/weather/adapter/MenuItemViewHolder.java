@@ -8,7 +8,7 @@ import android.widget.TextView;
 import com.marcelsyrucek.weather.R;
 
 /**
- * Created by marcel on 19.6.2015.
+ * Created by marcel on 21.6.2015.
  */
 public class MenuItemViewHolder extends RecyclerView.ViewHolder {
 

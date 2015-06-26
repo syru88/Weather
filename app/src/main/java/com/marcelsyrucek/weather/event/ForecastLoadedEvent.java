@@ -1,19 +1,19 @@
 package com.marcelsyrucek.weather.event;
 
-import com.marcelsyrucek.weather.database.model.ForecastWeatherModelList;
+import com.marcelsyrucek.weather.database.model.ForecastWeatherListModel;
 
 /**
  * Created by marcel on 23.6.2015.
  */
 public class ForecastLoadedEvent {
 
-	private ForecastWeatherModelList mForecastWeatherModelList;
+	private ForecastWeatherListModel mForecastWeatherListModel;
 
-	public ForecastLoadedEvent(ForecastWeatherModelList forecastWeatherModelList) {
-		mForecastWeatherModelList = forecastWeatherModelList;
+	public ForecastLoadedEvent(ForecastWeatherListModel forecastWeatherListModel) {
+		mForecastWeatherListModel = forecastWeatherListModel;
 	}
 
-	public ForecastWeatherModelList getForecastWeatherModelList() {
-		return mForecastWeatherModelList;
+	public ForecastWeatherListModel getForecastWeatherListModel() {
+		return mForecastWeatherListModel;
 	}
 }

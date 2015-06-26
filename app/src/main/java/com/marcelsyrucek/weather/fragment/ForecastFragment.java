@@ -19,13 +19,12 @@ import com.marcelsyrucek.weather.WeatherApplication;
 import com.marcelsyrucek.weather.activity.MainActivity;
 import com.marcelsyrucek.weather.adapter.ForecastAdapter;
 import com.marcelsyrucek.weather.database.model.CityModel;
-import com.marcelsyrucek.weather.database.model.ForecastWeatherModelList;
+import com.marcelsyrucek.weather.database.model.ForecastWeatherListModel;
 import com.marcelsyrucek.weather.event.CityClickedEvent;
 import com.marcelsyrucek.weather.event.CityLoadedEvent;
 import com.marcelsyrucek.weather.event.ForecastLoadedEvent;
 import com.marcelsyrucek.weather.service.NetworkService;
 import com.marcelsyrucek.weather.utility.Logcat;
-import com.marcelsyrucek.weather.utility.WeatherUtility;
 import com.squareup.otto.Bus;
 import com.squareup.otto.Subscribe;
 
@@ -74,15 +73,17 @@ public class ForecastFragment extends Fragment {
 	}
 
 	private void startNetworkService(boolean showProgress) {
-		Intent intent = new Intent(getActivity(), NetworkService.class);
-		intent.putExtra(NetworkService.EXTRA_REQUEST, NetworkService.REQUEST_VALUE_FORECAST);
-		intent.putExtra(NetworkService.EXTRA_CITY, mShownCity);
+		if (mShownCity != null) {
+			Intent intent = new Intent(getActivity(), NetworkService.class);
+			intent.putExtra(NetworkService.EXTRA_REQUEST, NetworkService.REQUEST_VALUE_FORECAST);
+			intent.putExtra(NetworkService.EXTRA_CITY, mShownCity);
 
-		if (mSwipeRefreshLayout != null && showProgress) {
-			mSwipeRefreshLayout.setRefreshing(true);
+			if (mSwipeRefreshLayout != null && showProgress) {
+				mSwipeRefreshLayout.setRefreshing(true);
+			}
+
+			getActivity().startService(intent);
 		}
-
-		getActivity().startService(intent);
 	}
 
 	@Override
@@ -107,6 +108,7 @@ public class ForecastFragment extends Fragment {
 		mRoot = (ViewGroup) inflater.inflate(R.layout.fragment_forecast, container, false);
 
 		mSwipeRefreshLayout = (SwipeRefreshLayout) mRoot.findViewById(R.id.fragment_forecast_swipe_refresh_layout);
+		mSwipeRefreshLayout.setColorSchemeResources(R.color.primary);
 		mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
 			@Override
 			public void onRefresh() {
@@ -139,14 +141,14 @@ public class ForecastFragment extends Fragment {
 
 	@Subscribe
 	public void subscibeOnForecastLoadedEvent(ForecastLoadedEvent event) {
-		Logcat.e(TAG, "ForecastLoadedEvent: " + event.getForecastWeatherModelList());
+		Logcat.d(TAG, "ForecastLoadedEvent: " + event.getForecastWeatherListModel());
 
 		if (mSwipeRefreshLayout != null) {
 			mSwipeRefreshLayout.setRefreshing(false);
 		}
 
-		handleErrors(event.getForecastWeatherModelList());
-		loadData(event.getForecastWeatherModelList());
+		handleErrors(event.getForecastWeatherListModel());
+		loadData(event.getForecastWeatherListModel());
 	}
 
 	private void loadUnitFromPreferences() {
@@ -156,14 +158,14 @@ public class ForecastFragment extends Fragment {
 				getString(R.string.prefs_default_value_unit_of_temperature)));
 	}
 
-	private void loadData(ForecastWeatherModelList forecastWeatherModelList) {
+	private void loadData(ForecastWeatherListModel forecastWeatherListModel) {
 		loadUnitFromPreferences();
-		mAdapter.setDays(forecastWeatherModelList.getDays(), mTempPreference);
+		mAdapter.setDays(forecastWeatherListModel.getDays(), mTempPreference);
 	}
 
-	private void handleErrors(ForecastWeatherModelList forecastWeatherModelList) {
-		if (forecastWeatherModelList.isError()) {
-			Snackbar.make(mRoot, forecastWeatherModelList.getErrorText(), Snackbar.LENGTH_LONG).show();
+	private void handleErrors(ForecastWeatherListModel forecastWeatherListModel) {
+		if (forecastWeatherListModel.isError()) {
+			Snackbar.make(mRoot, forecastWeatherListModel.getErrorText(), Snackbar.LENGTH_LONG).show();
 		}
 	}
 

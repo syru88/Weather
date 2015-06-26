@@ -34,7 +34,8 @@ public class CityDatabase {
 		// prepare data for showing city with last current position
 		CityModel cityModel = new CityModel();
 		cityModel.setName(mContext.getString(R.string.menu_menu_current_position));
-		mDatabase.addEntry(mContext.getString(R.string.prefs_storage_current_city), cityModel);
+		cityModel.setId(mContext.getString(R.string.prefs_storage_current_city_key));
+		mDatabase.addEntry(mContext.getString(R.string.prefs_storage_current_city_key), cityModel);
 
 	}
 
@@ -47,11 +48,15 @@ public class CityDatabase {
 	}
 
 	public boolean removeCity(CityModel city) {
-		return mDatabase.removeEntry(city);
+		if (!mContext.getString(R.string.prefs_storage_current_city_key).equals(city.getId())) {
+			Logcat.e(TAG, "Removed city");
+			return mDatabase.removeEntry(city);
+		}
+		return false;
 	}
 
 	public CityModel getCityWithCurrentPosition() {
-		CityModel cityModel = mDatabase.getEntryWithId(mContext.getString(R.string.prefs_storage_current_city));
+		CityModel cityModel = mDatabase.getEntryWithId(mContext.getString(R.string.prefs_storage_current_city_key));
 		if (cityModel.getId() == null) {
 			Logcat.e(TAG, "first start of application");
 			return null;
@@ -61,12 +66,12 @@ public class CityDatabase {
 	}
 
 	public void editCurrentCity(CityModel cityModel) {
-		cityModel.setId(mContext.getString(R.string.prefs_storage_current_city));
-		mDatabase.editEntry(mContext.getString(R.string.prefs_storage_current_city), cityModel);
+		cityModel.setId(mContext.getString(R.string.prefs_storage_current_city_key));
+		mDatabase.editEntry(mContext.getString(R.string.prefs_storage_current_city_key), cityModel);
 	}
 
 	public boolean isCityInDatabase(CityModel cityModel) {
-		if (cityModel == null) {
+		if (cityModel == null || mContext.getString(R.string.prefs_storage_current_city_key).equals(cityModel.getId())) {
 			return false;
 		}
 		return mDatabase.isEntryInDatabase(cityModel.getId());

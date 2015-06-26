@@ -14,7 +14,7 @@ import java.util.Calendar;
 import java.util.Locale;
 
 /**
- * Created by marcel on 18.6.2015.
+ * Created by marcel on 21.6.2015.
  */
 public class WeatherUtility {
 

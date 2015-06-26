@@ -4,30 +4,24 @@ import com.marcelsyrucek.weather.database.JsonRecord;
 import com.marcelsyrucek.weather.pojo.forecast.ForecastPojo;
 import com.marcelsyrucek.weather.pojo.forecast.List;
 import com.marcelsyrucek.weather.pojo.forecast.Weather;
-import com.marcelsyrucek.weather.utility.Logcat;
 import com.marcelsyrucek.weather.utility.WeatherUtility;
 
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.Locale;
 
 /**
  * Created by marcel on 23.6.2015.
  */
-public class ForecastWeatherModelList extends AgeAndExceptionData implements JsonRecord {
+public class ForecastWeatherListModel extends AgeAndExceptionData implements JsonRecord {
 
-	public static final String TAG = ForecastWeatherModelList.class.getSimpleName();
+	public static final String TAG = ForecastWeatherListModel.class.getSimpleName();
 
-	private String mId;
 	private String mName;
 	private ArrayList<ForecastWeatherModel> mDays = new ArrayList<>();
 
-	public ForecastWeatherModelList() {
+	public ForecastWeatherListModel() {
 	}
 
-	public ForecastWeatherModelList(ForecastPojo pojo, String preposition) {
+	public ForecastWeatherListModel(ForecastPojo pojo, String preposition) {
 		if (pojo.getCity() != null) {
 			mId = pojo.getCity().getId() + "";
 			mName = pojo.getCityWithCountry();

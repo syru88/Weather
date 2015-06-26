@@ -1,5 +1,6 @@
 package com.marcelsyrucek.weather.adapter;
 
+import android.content.Context;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,7 +13,7 @@ import com.marcelsyrucek.weather.utility.Logcat;
 import java.util.ArrayList;
 
 /**
- * Created by marcel on 19.6.2015.
+ * Created by marcel on 21.6.2015.
  */
 public class MenuAdapter extends RecyclerView.Adapter<MenuItemViewHolder> {
 
@@ -24,13 +25,15 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuItemViewHolder> {
 
 	public static final int NO_POSITION = -1;
 
+	private Context mContext;
 	private ArrayList<CityModel> mCities;
 	private MenuClickListener mMenuClickListener;
 	private int mLastSelectedPosition = NO_POSITION;
 
-	public MenuAdapter(ArrayList<CityModel> cities, MenuClickListener menuClickListener) {
-		mCities = cities;
+	public MenuAdapter(ArrayList<CityModel> cities, MenuClickListener menuClickListener, Context context) {
 		mMenuClickListener = menuClickListener;
+		mContext = context;
+		setCities(cities);
 	}
 
 	public int getLastSelectedPosition() {
@@ -46,9 +49,29 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuItemViewHolder> {
 		mCities.get(position).setIsSelected(true);
 	}
 
+	public void unSelectPosition() {
+		if (mLastSelectedPosition != NO_POSITION) {
+			mCities.get(mLastSelectedPosition).setIsSelected(false);
+			notifyItemChanged(mLastSelectedPosition);
+			mLastSelectedPosition = NO_POSITION;
+		}
+	}
+
 	public void setCities(ArrayList<CityModel> cities) {
 		mLastSelectedPosition = NO_POSITION;
+
+		CityModel currentPosition = cities.get(0);
+		for (int i = 0, size = cities.size(); i < size; i++) {
+			if (mContext.getString(R.string.prefs_storage_current_city_key).equals(cities.get(i).getId())) {
+				Logcat.e(TAG, "Current is on: " + i);
+				currentPosition = cities.get(i);
+				cities.remove(i);
+				break;
+			}
+		}
+
 		mCities = cities;
+		mCities.add(0, currentPosition);
 		notifyDataSetChanged();
 	}
 
@@ -77,7 +100,7 @@ public class MenuAdapter extends RecyclerView.Adapter<MenuItemViewHolder> {
 		menuItemViewHolder.itemView.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Logcat.e(TAG, "last: " + mLastSelectedPosition + ", cur: " + i);
+				Logcat.d(TAG, "last: " + mLastSelectedPosition + ", cur: " + i);
 				if (mLastSelectedPosition != NO_POSITION) {
 					mCities.get(mLastSelectedPosition).setIsSelected(false);
 					notifyItemChanged(mLastSelectedPosition);

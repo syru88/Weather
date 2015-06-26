@@ -48,7 +48,7 @@ public class GeneralDatabase<T extends JsonRecord> {
 	public boolean addEntry(String id, T entry) {
 		String databaseEntry = mSharedPreferences.getString(id, null);
 		if (databaseEntry != null) {
-			Logcat.e(TAG, "The entry " + entry.getName() + " is already in database.");
+			Logcat.i(TAG, "The entry " + entry.getName() + " is already in database.");
 			return false;
 		}
 
@@ -70,28 +70,40 @@ public class GeneralDatabase<T extends JsonRecord> {
 
 	/**
 	 *
-	 * @param id
+	 * @param key
 	 * @param entry
 	 * @return true if the entry was edited, false if the entry was added
 	 */
-	public boolean editEntry(String id, T entry) {
-		String databaseEntry = mSharedPreferences.getString(id, null);
+	public boolean editEntry(String key, T entry) {
+		String databaseEntry = mSharedPreferences.getString(key, null);
 		if (databaseEntry == null) {
-			Logcat.e(TAG, "editEntry hasn't found, so add it: " + id);
-			addEntry(id, entry);
+			Logcat.i(TAG, "editEntry hasn't found, so add it: " + key);
+			addEntry(key, entry);
 			return false;
 		} else {
 			Gson gson = new Gson();
-			mEditor.putString(id, gson.toJson(entry));
+			mEditor.putString(key, gson.toJson(entry));
 			mEditor.commit();
 			return true;
 		}
 	}
 
+	public boolean removeEntryWithId(String key) {
+		String databaseEntry = mSharedPreferences.getString(key, null);
+		if (databaseEntry == null) {
+			Logcat.i(TAG, "The entry with key" + key + " wasn't found in database.");
+			return false;
+		}
+		mEditor.remove(key);
+		mEditor.commit();
+
+		return true;
+	}
+
 	public boolean removeEntry(T entry) {
 		String databaseEntry = mSharedPreferences.getString(entry.getId(), null);
 		if (databaseEntry == null) {
-			Logcat.e(TAG, "The entry " + entry.getName() + " wasn't found in database.");
+			Logcat.i(TAG, "The entry " + entry.getName() + " wasn't found in database.");
 			return false;
 		}
 
@@ -104,7 +116,7 @@ public class GeneralDatabase<T extends JsonRecord> {
 	public T getEntryWithId(String id) {
 		String databaseEntry = mSharedPreferences.getString(id, null);
 		if (databaseEntry == null) {
-			Logcat.e(TAG, "The entry with id: " + id + " couldn't be found");
+			Logcat.i(TAG, "The entry with id: " + id + " couldn't be found");
 			return null;
 		}
 
@@ -127,7 +139,7 @@ public class GeneralDatabase<T extends JsonRecord> {
 
 		for (Map.Entry<String, ?> entry : allJsonEntries.entrySet()) {
 			json = mSharedPreferences.getString(entry.getKey(), "");
-			Logcat.d(TAG, "key: " + entry.getKey() + ", json: " + json);
+			Logcat.i(TAG, "key: " + entry.getKey() + ", json: " + json);
 			entries.add(gson.fromJson(json, this.mTypeClass));
 		}
 

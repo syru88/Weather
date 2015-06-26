@@ -6,11 +6,9 @@ import com.marcelsyrucek.weather.pojo.currentweather.CurrentWeatherPojo;
 import com.marcelsyrucek.weather.utility.WeatherUtility;
 
 /**
- * Created by marcel on 15.6.2015.
+ * Created by marcel on 21.6.2015.
  */
 public class CurrentWeatherModel extends AgeAndExceptionData implements JsonRecord {
-
-	private String mId;
 
 	private String mCity, mDescription, mIconUrl;
 	private double mTemperature, mWindSpeed, mWindDirection;
