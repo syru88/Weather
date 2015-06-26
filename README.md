@@ -12,7 +12,7 @@ Search by city name or current location.
 
 Saving cities (I don't think that the users will add or remove locations very often, so there is no list for
 removing cities. It is possible to add or remove city within optional menu. That is reason why I changed the
-information in navigation drawer (there is a list with cities now instead of today and forecast menu items)))
+information in navigation drawer (there is a list with cities now instead of today and forecast menu items))
 
 Database with information about weather - it is prepared for background synchronization which can be quickly and
 easily done (e.g. for widget).
